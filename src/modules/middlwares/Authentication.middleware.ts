@@ -24,8 +24,6 @@ export const Authorization =  ({
         const {decoded,User} = await Decoded({
             Authorization:req.headers.authorization,
             TokenType,
-            host:req.headers.host,
-            Models:req.models
         })
 
         if(!AcessRoles.includes(User.role))

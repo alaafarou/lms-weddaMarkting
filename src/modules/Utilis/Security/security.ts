@@ -6,14 +6,12 @@ import { BadRequestException, NotFoundException, UnauthorizedException } from ".
 import { TokenRepositry } from "../DatabasePattern/TokenRepostory";
 import { UserRepositry } from "../DatabasePattern/UserRepositry";
 import { Types } from "mongoose";
-import { DBModels } from "../Express.request.interface";
 import type { Request } from "express";
 import { TokenModel } from "../../../Schema/TokenModel";
 
 export enum SignaturelevelEnum {
     Bearer = "Bearer",
     system = "System",
-    super = "Super"
 }
 
 export enum TokenEnum {
@@ -59,9 +57,6 @@ export const GetSignatureslevel = async (
         case roleEnum.admin:
             return SignaturelevelEnum.system;
 
-        case roleEnum.superadmin:
-            return SignaturelevelEnum.super;
-
         case roleEnum.user:
             return SignaturelevelEnum.Bearer;
 
@@ -80,11 +75,6 @@ export const GetTokenKeys = async (
                 refresh_key: process.env.USER_REFRESH_TOKEN_KEY!
             };
 
-        case SignaturelevelEnum.super:
-            return {
-                Acess_key: process.env.SUPERADMIN_ACESS_TOKEN_KEY!,
-                refresh_key: process.env.SUPERADMIN_REFRESH_TOKEN_KEY!
-            };
 
         case SignaturelevelEnum.system:
             return {
@@ -136,24 +126,14 @@ export const GenerateCredentials = async (User: UserHydratedDocument) => {
 
 export const Decoded = async ({ Authorization,
     TokenType,
-    host,
-    Models
 }: {
     Authorization: string,
     TokenType: TokenEnum,
-    host?: string | undefined,
-    Models?: DBModels | undefined
 }) => {
 
     // for main DB
     let Usermodel = UserModel
     let Tokenmodel = TokenModel
-
-
-    if (host !== process.env.MAINHOST) {
-        Usermodel = Models?.User!
-        Tokenmodel = Models?.Token!
-    }
 
     const tokenRepositry = new TokenRepositry(Tokenmodel)
     const userRepositry = new UserRepositry(Usermodel)
@@ -204,10 +184,6 @@ export const Decoded = async ({ Authorization,
 export const createRevokeToken = async (Req: Request) => {
 
     let Tokenmodel = TokenModel
-
-    if (Req.params.tenantId) {
-        Tokenmodel = Req.models?.Token!
-    }
 
     const tokenRepositry = new TokenRepositry(Tokenmodel)
 

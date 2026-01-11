@@ -96,6 +96,7 @@ class lectureService {
 
     Deleteleacture = async (req: Request, res: Response, next: NextFunction) => {
         const { videoUrl } = req.body
+        
     
         const lecture = await this.LectureModel.findOneAndDelete({
             filter:{
