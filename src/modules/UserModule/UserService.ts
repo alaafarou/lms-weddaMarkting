@@ -11,30 +11,17 @@ import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
 
 class UserService {
 
-    private UserModel!: UserRepositry
+    private UserModel: UserRepositry = new UserRepositry(UserModel)
 
 
     constructor() {}
 
-    private ReinitializeModels(req: Request) {
-        const  host  = req.headers.host
-        if (host) {
-            const models = req.models;
-            this.UserModel = new UserRepositry(models?.User!);
-        }
-        else {
-            this.UserModel = new UserRepositry(UserModel);
-        }
-    }
-
 
     profile = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         return SuccesResponse<UserResponse>({ res, data: { user: req.user! } })
     }
 
     updateprofileimage = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const file = req.file as IMultter
         const User = await this.UserModel.findOneAndupdate({
             filter: {
@@ -52,7 +39,6 @@ class UserService {
     }
 
     updatepassword = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { password, newpassword, flag } = req.body
         if (! await CompareHash({ plaintext: password, HashedValue: req.user?.password as string })) {
             throw new BadRequestException("this password is wrong ")
@@ -95,7 +81,6 @@ class UserService {
     // }
 
     logout = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { flag } = req.body
         let statuscode = 200
         switch (flag) {
@@ -121,13 +106,9 @@ class UserService {
     }
 
     freezeUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { UserId } = req.params;
-        const  host  = req.headers.host
         const CurrentAdminId = req.user!;
-        if (host && CurrentAdminId.role === roleEnum.superadmin) {
-            throw new BadRequestException("sorry Teant Canot Acess Acount that is Super admin")
-        }
+     
         if (!UserId || (UserId == CurrentAdminId.toString())) {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
@@ -171,12 +152,8 @@ class UserService {
     };
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { UserId,tenantId } = req.params;
         const CurrentAdminId = req.user!;
-        if (tenantId && CurrentAdminId.role === roleEnum.superadmin) {
-            throw new BadRequestException("sorry Teant Canot Acess Acount that is Super admin")
-        }
         if (!UserId || (UserId == CurrentAdminId.toString())) {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
@@ -221,12 +198,8 @@ class UserService {
     };
 
     DeleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { UserId ,tenantId} = req.params;
         const CurrentAdminId = req.user!;
-        if (tenantId && CurrentAdminId.role === roleEnum.superadmin) {
-            throw new BadRequestException("sorry Teant Canot Acess Acount that is Super admin")
-        }
         if (!UserId || (UserId == CurrentAdminId.toString())) {
             const User = await this.UserModel.findOneAndDelete({
                 filter: {

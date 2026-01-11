@@ -6,17 +6,12 @@ import { endpoints } from "./user.endpoint";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
 import { DeleteUserValidation, freezeUserValidation, logoutValidation, restoreUserValidation } from "./Uservalidation";
-import { DBSwitch } from "../middlwares/DB.middleware";
 
 const UserRouter = Router()
 
 
-// UserRouter.use("/:userId/chat",chatRouter)
-
-
 
 UserRouter.patch("/profile-image",
-    DBSwitch,
     Authorization({ AcessRoles: endpoints.profileimage }),
     localFileUpload({
         folder: folderEnum.User,
@@ -26,14 +21,12 @@ UserRouter.patch("/profile-image",
 
 
 UserRouter.get("",
-    DBSwitch,
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     UserService.profile)
 
 
 UserRouter.post("/logout",
     validation(logoutValidation),
-    DBSwitch,
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     UserService.logout)
 
@@ -51,14 +44,12 @@ UserRouter.patch("/freezeUser{/:id}",
 
 UserRouter.patch("/DeleteUser{/:id}",
     validation(DeleteUserValidation),
-    DBSwitch,
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.DeleteUser)
 
 
 UserRouter.patch("/restoreUser{/:id}",
     validation(restoreUserValidation),
-    DBSwitch,
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.RestoreUser)
 
