@@ -1,9 +1,9 @@
 import type { Response, Request, NextFunction } from "express"
 import { parseISODuration } from "../Utilis/Duration";
-import { LectureModel } from "../../Schema/lecture";
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory";
 import { BadRequestException } from "../Utilis/response/ErrorResponse";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
+import { LectureModel } from "../../Schema/lecture";
 
 class lectureService {
     private readonly LectureModel = new LectureRepositry(LectureModel)

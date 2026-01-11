@@ -41,3 +41,4 @@ export const LectureSchema = new Schema<ILecture>({
 }, { timestamps: true });
 
 export type LectureHydratedDocuments = HydratedDocument<ILecture>
+export const LectureModel = model<ILecture>("Lecture",LectureSchema)

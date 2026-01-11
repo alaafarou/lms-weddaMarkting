@@ -4,27 +4,19 @@ import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { Types } from "mongoose"
+import { CourseModel } from "../../Schema/Course"
+import { SectionModel } from "../../Schema/Section"
 
 
 class SectionService {
 
-    private  CourseModel!: CourseRepositry
-    private  SectionModel!: SectionRepositry
+    private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
+    private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
 
     constructor() { }
 
-    private ReinitializeModels(req: Request) {
-        const host = req.headers.host
-        if (host) {
-            const models = req.models;
-            this.CourseModel = new CourseRepositry(models?.Course!);
-            this.SectionModel = new SectionRepositry(models?.Section!);
-        }
-    }
-
 
     createSection = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         console.log(req.params.CourseId)
         const checkCourse = await this.CourseModel.findOne({
             filter: {
@@ -52,7 +44,6 @@ class SectionService {
     }
 
     UpdateSection = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { SectionID, CourseId } = req.params
         const checkCourse = await this.CourseModel.findOne({
             filter: {
@@ -79,7 +70,6 @@ class SectionService {
     }
 
     DeleteSection = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { SectionID, CourseId } = req.params
         const checkCourse = await this.CourseModel.findOne({
             filter: {
