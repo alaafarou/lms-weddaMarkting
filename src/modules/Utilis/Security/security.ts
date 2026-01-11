@@ -131,13 +131,8 @@ export const Decoded = async ({ Authorization,
     TokenType: TokenEnum,
 }) => {
 
-    // for main DB
-    let Usermodel = UserModel
-    let Tokenmodel = TokenModel
-
-    const tokenRepositry = new TokenRepositry(Tokenmodel)
-    const userRepositry = new UserRepositry(Usermodel)
-
+    const tokenRepositry = new TokenRepositry(TokenModel)
+    const userRepositry = new UserRepositry(UserModel)
 
     const [Bearer, token] = Authorization.split(" ")
     if (!Bearer || !token) {
