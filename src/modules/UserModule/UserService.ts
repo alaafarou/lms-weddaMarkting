@@ -152,7 +152,7 @@ class UserService {
     };
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { UserId,tenantId } = req.params;
+        const { UserId } = req.params;
         const CurrentAdminId = req.user!;
         if (!UserId || (UserId == CurrentAdminId.toString())) {
             const User = await this.UserModel.findOneAndupdate({
@@ -198,7 +198,7 @@ class UserService {
     };
 
     DeleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { UserId ,tenantId} = req.params;
+        const { UserId } = req.params;
         const CurrentAdminId = req.user!;
         if (!UserId || (UserId == CurrentAdminId.toString())) {
             const User = await this.UserModel.findOneAndDelete({
