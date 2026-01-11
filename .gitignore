@@ -1,2 +1,4 @@
 node_modules
 config/.env.dev
+echo ".DS_Store" >> .gitignore
+echo "**/.DS_Store" >> .gitignore
