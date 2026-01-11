@@ -20,7 +20,7 @@ export interface IOtp {
   IsUsed:boolean
 }
 
-export const OtpSchema = new Schema<IOtp>({
+const OtpSchema = new Schema<IOtp>({
   code: {
     type: String,
     required: true

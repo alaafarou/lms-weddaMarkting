@@ -8,35 +8,23 @@ import { createOtpNumber } from "../Utilis/emial/RandomOtp"
 import { OtpEnum } from "../Utilis/emial/email"
 import { CompareHash } from "../Utilis/Security/hash"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
+import { CourseModel } from "../../Schema/Course"
+import { OtpModel } from "../../Schema/OtpModel"
+import { UserModel } from "../../Schema/UserModel"
 import { Types } from "mongoose"
-
 
 class CourseService {
 
-    private CourseModel!: CourseRepositry
-    private OtpModel!: OtpRepositry
-    private UserModel!: UserRepositry
+    private readonly CourseModel:CourseRepositry = new CourseRepositry(CourseModel);
+    private readonly OtpModel:OtpRepositry       = new OtpRepositry(OtpModel);
+    private readonly UserModel:UserRepositry     = new UserRepositry(UserModel);
 
-
-
+    
 
     constructor() { }
 
-    private ReinitializeModels(req: Request) {
-        const host = req.headers.host
-        if (host !== process.env.MAINHOST) {
-            const models = req.models;
-            this.CourseModel = new CourseRepositry(models?.Course!);
-            this.OtpModel = new OtpRepositry(models?.Otp!);
-            this.UserModel = new UserRepositry(models?.User!);
-        }
-        return host
-    }
-
-
     // perfect test and everything is ok
     createCourse = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const file = req.file as IMultter
 
         const checkCourse = await this.CourseModel.findOne({
@@ -65,7 +53,6 @@ class CourseService {
 
     // perfect test and everything is ok
     UpdateCourse = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { name } = req.body
         const { CourseId } = req.params
         const file = req.file as IMultter
@@ -95,7 +82,6 @@ class CourseService {
 
     // perfect test and everything is ok
     FreezeCourse = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
 
         const course = await this.CourseModel.findOneAndupdate({
@@ -121,7 +107,6 @@ class CourseService {
 
     // perfect test and everything is ok
     RestoreCourse = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
         console.log(CourseId)
 
@@ -148,7 +133,6 @@ class CourseService {
 
     // perfect test and everything is ok
     DeleteCourse = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
 
         const course = await this.CourseModel.findOneAndDelete({
@@ -165,7 +149,6 @@ class CourseService {
 
     // perfect test and everything is ok
     GetCourse = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
         const Course = await this.CourseModel.findOne({
             filter: {
@@ -184,7 +167,6 @@ class CourseService {
 
     // perfect test and everything is ok
     GetCourseArchived = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
         const Course = await this.CourseModel.findOne({
             filter: {
@@ -203,7 +185,6 @@ class CourseService {
 
     // perfect test and everything is ok
     GetAllCourses = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { page, size } = req.query as unknown as { page: number, size: number }
         const Courses = await this.CourseModel.paginate({
             filter: { ...req.body || {}, DeletedAt: { $exists: false } },
@@ -218,7 +199,6 @@ class CourseService {
 
     // perfect test and everything is ok
     GetAllCoursesArchived = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { page, size } = req.query as unknown as { page: number, size: number }
         const Courses = await this.CourseModel.paginate({
             filter: {
@@ -236,7 +216,6 @@ class CourseService {
 
 
     GenerateCode = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
         console.log(CourseId)
         const { StudentID } = req.body
@@ -292,7 +271,6 @@ class CourseService {
         const { CourseId } = req.params
         const { Code } = req.body
 
-        this.ReinitializeModels(req)
         const course = await this.CourseModel.findOne({
             filter: {
                 _id: CourseId,
@@ -360,7 +338,6 @@ class CourseService {
 
 
     addUser = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseId } = req.params
         const { StudentID } = req.body
         
@@ -395,4 +372,6 @@ class CourseService {
 
 
 }
-export default new CourseService
+
+export default new CourseService()
+

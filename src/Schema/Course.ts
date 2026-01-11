@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from "../modules/Utilis/Enums/courses";
 import { IOtp } from "./OtpModel";
 
@@ -32,7 +32,7 @@ export interface ICourse {
 
 }
 
-export const CourseSchema = new Schema<ICourse>({
+const CourseSchema = new Schema<ICourse>({
 
     name: {
         type: String,
@@ -88,9 +88,6 @@ export const CourseSchema = new Schema<ICourse>({
 }, { timestamps: true })
 
 
-
-
-
 CourseSchema.virtual("Otps", {
   ref: "Otp",
   localField: "_id",
@@ -99,3 +96,4 @@ CourseSchema.virtual("Otps", {
 
 
 export type CourseHydareatedDocument = HydratedDocument<ICourse>
+export const CourseModel  = model<ICourse>("Course",CourseSchema)
