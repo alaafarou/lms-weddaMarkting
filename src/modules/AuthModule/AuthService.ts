@@ -6,7 +6,7 @@ import { Types } from "mongoose";
 import { createOtpNumber } from "../Utilis/emial/RandomOtp";
 import { loginResponse, UserResponse } from "./AuthEntites";
 import { OtpEnum } from "../Utilis/emial/email";
-import { providerEnum, roleEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
+import { providerEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
 import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
@@ -18,31 +18,14 @@ import { OtpModel } from "../../Schema/OtpModel";
 
 class AuthenticationService {
 
-    // use this if we want to make multi tenant 
-    private UserModel!: UserRepositry
-    private OtpModel!: OtpRepositry
 
-
-    // private UserModel = new UserRepositry(UserModel);
-    // private OtpModel = new OtpRepositry(OtpModel);
+    private UserModel = new UserRepositry(UserModel);
+    private OtpModel = new OtpRepositry(OtpModel);
 
 
     constructor() { }
 
-    private ReinitializeModels(req: Request) {
-        const host  = req.headers.host
-        if (host !== process.env.MAINHOST) {
-            const models = req.models;
-            this.UserModel = new UserRepositry(models?.User!);
-            this.OtpModel = new OtpRepositry(models?.Otp!);
-        }
-        else{
-            this.UserModel = new UserRepositry(UserModel);
-            this.OtpModel = new OtpRepositry(OtpModel);
-        }
-        return host
-
-    }
+    
 
     private async SendEmail({ userID, type = OtpEnum.confirmEmail }: { userID: Types.ObjectId, type?: OtpEnum }) {
         const [Otp] = await this.OtpModel.create({
@@ -62,19 +45,7 @@ class AuthenticationService {
     }
 
     Singup = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const host = this.ReinitializeModels(req)
         let { email, password, fullname , role } = req.body
-
-        if(host === process.env.MAINHOST)
-        {
-            role = roleEnum.superadmin
-        }
-
-        if(host !== process.env.MAINHOST && role === roleEnum.superadmin)
-        {
-           throw new BadRequestException("sorry SuperAdmin Belong to main App ")
-        }
-
         console.log({ email, password, fullname })
         const checkuser = await this.UserModel.findOne({
             filter: {
@@ -114,7 +85,6 @@ class AuthenticationService {
     }
 
     ResendConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { email } = req.body
 
         const User = await this.UserModel.findOne({
@@ -145,9 +115,7 @@ class AuthenticationService {
         return SuccesResponse({ res, data: {} })
     }
 
-
     ResendForgotPasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { email } = req.body
 
         const User = await this.UserModel.findOne({
@@ -179,7 +147,6 @@ class AuthenticationService {
     }
 
     ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { email, code } = req.body
 
         const User = await this.UserModel.findOne({
@@ -222,9 +189,7 @@ class AuthenticationService {
         return SuccesResponse<UserResponse>({ res, data: { user: User } })
     }
 
-
     forgotpasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        this.ReinitializeModels(req)
         const { email } = req.body
         const User = await this.UserModel.findOne({
             filter: {
@@ -257,7 +222,6 @@ class AuthenticationService {
 
     Resetpassword = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
 
-        this.ReinitializeModels(req)
 
         const { email, code, password } = req.body
 
@@ -293,8 +257,6 @@ class AuthenticationService {
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-
-        this.ReinitializeModels(req)
 
         const { email, password } = req.body
 
