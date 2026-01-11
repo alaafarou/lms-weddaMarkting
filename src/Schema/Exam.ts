@@ -1,5 +1,5 @@
 
-import { HydratedDocument, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
 import { questionEnum } from "../modules/Utilis/Enums/courses";
 
 
@@ -99,3 +99,4 @@ ExamSchema.pre('save', function (next) {
 
 
 export type ExamHydratedDocument = HydratedDocument<IExam>;
+export const ExamModule = model<IExam>("Exam",ExamSchema)

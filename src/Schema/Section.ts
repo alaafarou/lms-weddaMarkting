@@ -1,4 +1,4 @@
-import  { HydratedDocument, Schema, Types } from "mongoose";
+import  { HydratedDocument, model, Schema, Types } from "mongoose";
 
 
 export interface ISection {
@@ -46,3 +46,4 @@ export const SectionSchema = new Schema<ISection>({
 
 
 export type SectionHydareatedDocument = HydratedDocument<ISection>
+export const SectionModel = model<ISection>("Section",SectionSchema)

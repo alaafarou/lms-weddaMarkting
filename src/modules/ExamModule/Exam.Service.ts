@@ -7,36 +7,26 @@ import { Types } from "mongoose";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
+import { ExamModule } from "../../Schema/Exam";
+import { CourseModel } from "../../Schema/Course";
+import { SectionModel } from "../../Schema/Section";
+import { SubmissionModel } from "../../Schema/Submition";
+import { UserModel } from "../../Schema/UserModel";
 
 
 
 class ExamService {
 
-    private ExamModel!: ExamRepositry
-    private CourseModel!: CourseRepositry
-    private SectionModel!: SectionRepositry
-    private SubmissionModel!: SubmissionReposatory
-    private UserModel!: UserRepositry
-
+    private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
+    private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
+    private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
+    private readonly SubmissionModel: SubmissionReposatory =new SubmissionReposatory(SubmissionModel)
+    private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
 
     constructor() { }
 
-    private ReinitializeModels(req: Request) {
-        const host = req.headers.host
-        if (host !== process.env.MAINHOST) {
-            const models = req.models;
-            this.CourseModel = new CourseRepositry(models?.Course!);
-            this.SectionModel = new SectionRepositry(models?.Section!);
-            this.ExamModel = new ExamRepositry(models?.Exam!)
-            this.SubmissionModel = new SubmissionReposatory(models?.Submission!)
-            this.UserModel = new UserRepositry(models?.User!)
-
-        }
-    }
-
 
     CreateExam = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { SectionID } = req.params
         const { questions, name, Duration } = req.body
         const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID } })
@@ -65,7 +55,6 @@ class ExamService {
     
 
     startExam = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { CourseID, ExamID } = req.params
         const [CheckEnrolled, Exam] = await Promise.all(
             [
@@ -104,7 +93,6 @@ class ExamService {
 
 
     submiteExame = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { ExamID } = req.params
         const { Answers } = req.body as { Answers: [{ index: number, answer: string }] }
         let grade: number = 0
@@ -209,7 +197,6 @@ class ExamService {
 
 
     restoreExame = async (req: Request, res: Response, next: NextFunction) => {
-
         const { ExamID } = req.params
         const Exam = await this.ExamModel.findOneAndupdate({
             filter: { _id: ExamID, DeletedAt: { $exists: true } },
@@ -233,7 +220,6 @@ class ExamService {
 
 
     StudentExamStatus = async (req: Request, res: Response, next: NextFunction) => {
-        this.ReinitializeModels(req)
         const { phone, ParentsPhone } = req.body
 
         const Student = await this.UserModel.findOne({

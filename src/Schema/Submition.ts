@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
 import { IExam } from "./Exam";
 import { IUser } from "./UserModel";
 
@@ -45,3 +45,4 @@ export const SubmissionSchema = new Schema<ISubmition>({
 
 
 export type SchemaHydratedDocument =  HydratedDocument<ISubmition>
+export const SubmissionModel = model<ISubmition>("submission",SubmissionSchema)
