@@ -1,0 +1,228 @@
+import { verify, sign } from "jsonwebtoken"
+import type { JwtPayload, Secret, SignOptions } from "jsonwebtoken"
+import { roleEnum, UserHydratedDocument, UserModel } from "../../../Schema/UserModel"
+import { v4 as uuidv4 } from 'uuid';
+import { BadRequestException, NotFoundException, UnauthorizedException } from "../response/ErrorResponse";
+import { TokenRepositry } from "../DatabasePattern/TokenRepostory";
+import { UserRepositry } from "../DatabasePattern/UserRepositry";
+import { Types } from "mongoose";
+import { DBModels } from "../Express.request.interface";
+import type { Request } from "express";
+import { TokenModel } from "../../../Schema/TokenModel";
+
+export enum SignaturelevelEnum {
+    Bearer = "Bearer",
+    system = "System",
+    super = "Super"
+}
+
+export enum TokenEnum {
+    AcessToken = "AcessToken",
+    RefreshToken = "RefreshToken"
+}
+
+export enum logoutEnum {
+    CurrentDevice = "CurrentDevice",
+    AllDevices = "AllDevices"
+}
+
+
+export const GenerateToken = async ({
+    Payload,
+    secret,
+    options
+}: {
+    Payload: object,
+    secret: Secret
+    options?: SignOptions,
+
+}): Promise<String> => {
+    return await sign(Payload, secret, options)
+}
+
+
+export const VerifyToken = async ({
+    token,
+    secret = process.env.USER_ACESS_TOKEN_KEY as string,
+}: {
+    token: string;
+    secret: Secret;
+}): Promise<JwtPayload> => {
+    return await verify(token, secret) as JwtPayload
+}
+
+
+export const GetSignatureslevel = async (
+    role: roleEnum
+): Promise<SignaturelevelEnum> => {
+    switch (role) {
+        case roleEnum.admin:
+            return SignaturelevelEnum.system;
+
+        case roleEnum.superadmin:
+            return SignaturelevelEnum.super;
+
+        case roleEnum.user:
+            return SignaturelevelEnum.Bearer;
+
+        default:
+            throw new BadRequestException(`Unknown role : ${role}`);
+    }
+};
+
+export const GetTokenKeys = async (
+    Signatures: SignaturelevelEnum
+): Promise<{ Acess_key: string; refresh_key: string }> => {
+    switch (Signatures) {
+        case SignaturelevelEnum.Bearer:
+            return {
+                Acess_key: process.env.USER_ACESS_TOKEN_KEY!,
+                refresh_key: process.env.USER_REFRESH_TOKEN_KEY!
+            };
+
+        case SignaturelevelEnum.super:
+            return {
+                Acess_key: process.env.SUPERADMIN_ACESS_TOKEN_KEY!,
+                refresh_key: process.env.SUPERADMIN_REFRESH_TOKEN_KEY!
+            };
+
+        case SignaturelevelEnum.system:
+            return {
+                Acess_key: process.env.ADMIN_ACESS_TOKEN_KEY!,
+                refresh_key: process.env.ADMIN_REFRESH_TOKEN_KEY!
+            };
+
+        default:
+            throw new BadRequestException(`Unknown signature level: ${Signatures}`);
+    }
+};
+
+
+
+export const GenerateCredentials = async (User: UserHydratedDocument) => {
+
+    const Signature = await GetSignatureslevel(User.role)
+    /// will detect if its bearer or system
+    const TokenSecretKey = await GetTokenKeys(Signature)
+    const jwtid = uuidv4()
+
+
+    const AcessToken = await GenerateToken({
+        Payload: { _id: User._id },
+        secret: TokenSecretKey.Acess_key,
+        options: {
+            expiresIn: Number(process.env.ACESS_TOKEN_EXPIRESIN as String),
+            jwtid
+        }
+    })
+
+    const RefreshToken = await GenerateToken({
+        Payload: { _id: User._id },
+        secret: TokenSecretKey.refresh_key,
+        options: {
+            expiresIn: Number(process.env.REFRESH_TOKEN_EXPIRESIN as String),
+            jwtid
+        }
+    })
+    const Credentials = {
+        AcessToken,
+        RefreshToken
+    }
+
+    return Credentials
+
+}
+
+
+export const Decoded = async ({ Authorization,
+    TokenType,
+    host,
+    Models
+}: {
+    Authorization: string,
+    TokenType: TokenEnum,
+    host?: string | undefined,
+    Models?: DBModels | undefined
+}) => {
+
+    // for main DB
+    let Usermodel = UserModel
+    let Tokenmodel = TokenModel
+
+
+    if (host !== process.env.MAINHOST) {
+        Usermodel = Models?.User!
+        Tokenmodel = Models?.Token!
+    }
+
+    const tokenRepositry = new TokenRepositry(Tokenmodel)
+    const userRepositry = new UserRepositry(Usermodel)
+
+
+    const [Bearer, token] = Authorization.split(" ")
+    if (!Bearer || !token) {
+        throw new UnauthorizedException("Missing Token Parts")
+    }
+
+    const tokenkeys = await GetTokenKeys(Bearer as SignaturelevelEnum)
+
+    const decoded = await VerifyToken({
+        token,
+        secret: TokenType === TokenEnum.AcessToken ? tokenkeys.Acess_key : tokenkeys.refresh_key,
+    })
+
+    if (!decoded.iat || !decoded._id) {
+        throw new BadRequestException(" invalid token payload")
+
+    }
+
+    if (await tokenRepositry.findOne({
+        filter: { jti: decoded.jti }
+    })) {
+        throw new UnauthorizedException("invalid or old login Credentals")
+    }
+
+    const User = await userRepositry.findOne({
+        filter: {
+            _id: decoded._id
+        }
+    })
+
+    if (!User) {
+        throw new NotFoundException(" this account is not created")
+    }
+
+    if (User.changeCredentialsTime && User.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
+        throw new NotFoundException(" this account isnot loged in")
+    }
+
+    return { User, decoded }
+
+}
+
+
+export const createRevokeToken = async (Req: Request) => {
+
+    let Tokenmodel = TokenModel
+
+    if (Req.params.tenantId) {
+        Tokenmodel = Req.models?.Token!
+    }
+
+    const tokenRepositry = new TokenRepositry(Tokenmodel)
+
+    const [token] = await tokenRepositry.create({
+        data: [{
+            jti: Req.decoded?.jti as string,
+            expiresAt: new Date(new Date(Req.decoded?.iat as number + Number(process.env.REFRESH_TOKEN_EXPIRESIN))),
+            createdBy: Types.ObjectId.createFromHexString(Req.decoded?._id as string)
+        }]
+    }) || []
+
+    if (!token) {
+        throw new BadRequestException("failed to revoke this token ")
+    }
+
+    return token
+
+}
