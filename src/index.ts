@@ -7,8 +7,8 @@ import { config } from "dotenv"
 import { DBconnection } from "./modules/Utilis/DBconnection"
 import { GlobalError } from "./modules/Utilis/response/ErrorResponse"
 import CourseRouter from "./modules/CourseModule/CourseRouter"
+import { SwaggerDocs } from "./Swagger"
 config({ path: resolve("./config/.env.dev") })
-
 
 const bootsrap = async () => {
 
@@ -18,9 +18,11 @@ const bootsrap = async () => {
     await DBconnection()
 
 
+
     app.use("/Auth", AuthRouter)
     app.use("/User",UserRouter)
     app.use("/course", CourseRouter)
+
 
 
 
@@ -28,6 +30,7 @@ const bootsrap = async () => {
 
     app.listen(process.env.PORT, () => {
         console.log(`the application is running on port ${process.env.PORT}`)
+        SwaggerDocs(app,Number(process.env.PORT))
     })
 
 }

@@ -1,17 +1,16 @@
 import type { Response, Request, NextFunction } from "express"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
-import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse";
+import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { Types } from "mongoose";
 import { createOtpNumber } from "../Utilis/emial/RandomOtp";
 import { loginResponse, UserResponse } from "./AuthEntites";
 import { OtpEnum } from "../Utilis/emial/email";
-import { providerEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
+import { UserHydratedDocument, UserModel } from "../../Schema/UserModel";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
 import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
 import { OtpModel } from "../../Schema/OtpModel";
-
 
 
 
@@ -25,7 +24,6 @@ class AuthenticationService {
 
     constructor() { }
 
-    
 
     private async SendEmail({ userID, type = OtpEnum.confirmEmail }: { userID: Types.ObjectId, type?: OtpEnum }) {
         const [Otp] = await this.OtpModel.create({
@@ -43,9 +41,9 @@ class AuthenticationService {
         }
 
     }
-
+ 
     Singup = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        let { email, password, fullname , role } = req.body
+        let { email, password, fullname, role } = req.body
         console.log({ email, password, fullname })
         const checkuser = await this.UserModel.findOne({
             filter: {
@@ -54,11 +52,11 @@ class AuthenticationService {
         })
 
         if (checkuser) {
-            throw new BadRequestException("this user already created")
+            throw new ConflictException("this user already created")
         }
 
-        if(req.body.ParentsPhone){
-            req.body.ParentsPhone = await GenerateHash({plaintext:req.body.phone})
+        if (req.body.ParentsPhone) {
+            req.body.ParentsPhone = await GenerateHash({ plaintext: req.body.phone })
         }
 
         const [user] = await this.UserModel.create({
@@ -81,7 +79,48 @@ class AuthenticationService {
 
         await this.SendEmail({ userID: user._id })
 
-        return SuccesResponse<UserResponse>({ res, data: { user } })
+        return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
+    }
+
+     ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { email, code } = req.body
+
+        const User = await this.UserModel.findOne({
+            filter: {
+                email,
+                confrimEmailAt: { $exists: false }
+            },
+            options: {
+                populate: [
+                    {
+                        path: "Otps",
+                        match: { type: OtpEnum.confirmEmail }
+                    }]
+            }
+        })
+
+        if (!User) {
+            throw new NotFoundException("this account does not exists")
+        }
+
+        if (
+            !(
+                User.Otps?.length &&
+                await CompareHash({ plaintext: code, HashedValue: User.Otps[0]!.code })
+            )) {
+            throw new BadRequestException("invalid otp")
+        }
+
+        User.confrimEmailAt = new Date()
+
+        await User.save()
+
+        await this.OtpModel.findOneAndDelete({
+            filter: {
+                _id: User.Otps[0]!._id
+            }
+        })
+        return SuccesResponse<UserResponse>({ res,statuscode:200,message:"Email confirmed",data:{ user: User } })
     }
 
     ResendConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -102,17 +141,48 @@ class AuthenticationService {
         })
 
         if (!User) {
-            throw new BadRequestException("this account does not exists")
+            throw new NotFoundException("this account does not exists or Already confirmed")
         }
 
 
         if (User.Otps?.length && User.Otps) {
-            throw new BadRequestException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
+            throw new ConflictException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
         }
 
         await this.SendEmail({ userID: User._id })
 
-        return SuccesResponse({ res, data: {} })
+        return SuccesResponse({ res ,statuscode:200, data: {} })
+    }
+
+
+    forgotpasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { email } = req.body
+        const User = await this.UserModel.findOne({
+            filter: {
+                email,
+                deletedAt: { $exists: false },
+            },
+            options: {
+                populate: [
+                    {
+                        path: "Otps",
+                        match: { type: OtpEnum.Forgotpassword }
+                    }
+                ]
+            }
+        })
+        if (!User) {
+            throw new NotFoundException("this account not created")
+        }
+        if (!User.Otps) {
+            await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
+        }
+        if (User.Otps && User.Otps.length > 0) {
+            const otp = User.Otps[0];
+            throw new ConflictException(`Fail to generate new OTP, please try again after ${otp?.expiresAt}`);
+        }
+        await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
+        return SuccesResponse({ res ,statuscode:200 })
     }
 
     ResendForgotPasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -133,103 +203,27 @@ class AuthenticationService {
         })
 
         if (!User) {
-            throw new BadRequestException("this account already confirmed or doesnt exist")
+            throw new NotFoundException("this account already confirmed or doesnt exist")
         }
 
 
         if (User.Otps?.length && User.Otps) {
-            throw new BadRequestException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
+            throw new ConflictException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
         }
 
         await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
 
-        return SuccesResponse({ res, data: {} })
+        return SuccesResponse({ res, statuscode:200, data: {} })
     }
 
-    ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { email, code } = req.body
-
-        const User = await this.UserModel.findOne({
-            filter: {
-                email,
-                confrimEmailAt: { $exists: false }
-            },
-            options: {
-                populate: [
-                    {
-                        path: "Otps",
-                        match: { type: OtpEnum.confirmEmail }
-                    }]
-            }
-        })
-
-        if (!User) {
-            throw new BadRequestException("this account does not exists")
-        }
-
-        if (
-            !(
-                User.Otps?.length &&
-                await CompareHash({ plaintext: code, HashedValue: User.Otps[0]!.code })
-            )) {
-            throw new BadRequestException("invalid otp")
-        }
-
-        await this.SendEmail({ userID: User._id })
-
-        User.confrimEmailAt = new Date()
-
-        await User.save()
-
-        await this.OtpModel.findOneAndDelete({
-            filter: {
-                _id: User.Otps[0]!._id
-            }
-        })
-        return SuccesResponse<UserResponse>({ res, data: { user: User } })
-    }
-
-    forgotpasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { email } = req.body
-        const User = await this.UserModel.findOne({
-            filter: {
-                email,
-                deletedAt: { $exists: false },
-                provider: providerEnum.system
-            },
-            options: {
-                populate: [
-                    {
-                        path: "Otps",
-                        match: { type: OtpEnum.Forgotpassword }
-                    }
-                ]
-            }
-        })
-        if (!User) {
-            throw new NotFoundException("this account not created")
-        }
-        if (!User.Otps) {
-            await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
-        }
-        if (User.Otps && User.Otps.length > 0) {
-            const otp = User.Otps[0];
-            throw new BadRequestException(`Fail to generate new OTP, please try again after ${otp?.expiresAt}`);
-        }
-        await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
-        return SuccesResponse({ res })
-    }
 
     Resetpassword = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
 
-
         const { email, code, password } = req.body
-
         const User = await this.UserModel.findOne({
             filter: {
                 email,
                 deletedAt: { $exists: false },
-                provider: providerEnum.system
             },
             options: {
                 populate: [
@@ -241,7 +235,7 @@ class AuthenticationService {
             }
         })
         if (!User) {
-            throw new BadRequestException("this account already confrimed")
+            throw new NotFoundException("this account does not exist")
         }
         if (!User.Otps || User.Otps.length === 0) {
             throw new NotFoundException("OTP code expired or not found");
@@ -253,7 +247,13 @@ class AuthenticationService {
 
         User.password = password
         await User.save()
-        return SuccesResponse<UserResponse>({ res, data: { user: User } })
+        await this.OtpModel.findOneAndDelete({
+            filter: {
+                _id: User.Otps[0]!._id,
+                type: OtpEnum.Forgotpassword
+            }
+        })
+        return SuccesResponse<UserResponse>({ res, statuscode:200, data: { user: User } })
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -276,13 +276,13 @@ class AuthenticationService {
         }
 
         if (! await CompareHash({ plaintext: password, HashedValue: User.password })) {
-            throw new NotFoundException("sorry wrong password or Email")
+            throw new BadRequestException("sorry wrong password or Email")
         }
 
         const Credentials = await GenerateCredentials(User as UserHydratedDocument)
 
-        return SuccesResponse<loginResponse>({ res, data: { Credentials } })
-        
+        return SuccesResponse<loginResponse>({ res , statuscode:200, data: { Credentials } })
+
     }
 
 }

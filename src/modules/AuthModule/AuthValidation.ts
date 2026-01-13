@@ -22,9 +22,9 @@ export const SingupValidation = {
         confirmPassword: z.string(),
         role: z.enum(["SuperAdmin", "admin", "user"]).optional(),
 
-        Gradelevel: z.nativeEnum(GradeLevelEnum).optional(),
-        Country: z.nativeEnum(CountryEnum).default(CountryEnum.Egypt),
-        StudentType:z.nativeEnum(StudentEnum).optional(),
+        Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
+        Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
+        StudentType:z.enum(Object.values(StudentEnum)).optional(),
 
         ParentsPhone: z.string().optional(),
         phone: z.string()
@@ -116,8 +116,6 @@ export const SingupValidation = {
     })
 }
 
-
-
 export const confirmEmailValidation = {
     body: z.strictObject({
         email: z.email("Invalid email format"),
@@ -142,7 +140,6 @@ export const loginValidation = {
             ),
     })
 }
-
 
 export const ResetpasswordValidation = {
 

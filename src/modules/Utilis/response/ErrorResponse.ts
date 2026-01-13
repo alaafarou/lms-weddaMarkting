@@ -27,7 +27,7 @@ export class BadRequestException extends applicationException{
 
 export class NotFoundException extends applicationException{
     constructor(message:string,cause?:unknown){
-        super(message,401,cause)
+        super(message,404,cause)
     }
 }
 
@@ -41,7 +41,7 @@ export class UnauthorizedException extends applicationException{
 
 export class ConflictException extends applicationException{
     constructor(message:string,cause?:unknown){
-        super(message,403,cause)
+        super(message,409,cause)
     }
 }
 
