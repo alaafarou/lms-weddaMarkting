@@ -1,7 +1,7 @@
 import type { NextFunction, Response, Request } from "express"
 import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
-import { BadRequestException, ConflictException } from "../Utilis/response/ErrorResponse"
+import { BadRequestException, ConflictException, NotFoundException, UnauthorizedException } from "../Utilis/response/ErrorResponse"
 import { IMultter } from "../Utilis/multer/cloud.multer"
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory"
 import { createOtpNumber } from "../Utilis/emial/RandomOtp"
@@ -77,7 +77,7 @@ class CourseService {
         if (!updateCourse) {
             throw new BadRequestException("sorry failed to update course please try again later")
         }
-        return SuccesResponse({ res, data: updateCourse });
+        return SuccesResponse({ res,statuscode:200, data: updateCourse });
     }
 
     // perfect test and everything is ok
@@ -100,9 +100,9 @@ class CourseService {
             options: { new: false }
         })
         if (!course) {
-            throw new BadRequestException("sorry failed to Delete the course as it must be in IActive status")
+            throw new NotFoundException("sorry failed to Delete the course as it must be in IActive status")
         }
-        return SuccesResponse({ res });
+        return SuccesResponse({ res , statuscode:200 });
     }
 
     // perfect test and everything is ok
@@ -154,11 +154,17 @@ class CourseService {
             filter: {
                 _id: CourseId,
                 DeletedAt: { $exists: false }
+            },
+            options:{
+                populate:[{
+                    path:"students",
+                    select: "email fullname phone" 
+                }]
             }
         })
 
         if (!Course) {
-            throw new BadRequestException("No course found matching criteria");
+            throw new NotFoundException("No course found matching criteria");
         }
 
         return SuccesResponse({ res, data: { Course } });
@@ -177,7 +183,7 @@ class CourseService {
         })
 
         if (!Course) {
-            throw new BadRequestException("No course found matching criteria");
+            throw new NotFoundException("No course found matching criteria");
         }
 
         return SuccesResponse({ res, data: { Course } });
@@ -192,7 +198,7 @@ class CourseService {
             size,
         });
         if (!Courses) {
-            throw new BadRequestException("No courses found matching criteria");
+            throw new NotFoundException("No courses found matching criteria");
         }
         return SuccesResponse({ res, data: { Courses } });
     };
@@ -214,7 +220,7 @@ class CourseService {
         return SuccesResponse({ res, data: { Courses } });
     };
 
-
+    // perfect test and everything is ok
     GenerateCode = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
         console.log(CourseId)
@@ -232,17 +238,17 @@ class CourseService {
             }
         })
         if (!CheckCourse) {
-            throw new BadRequestException("this course is not created")
+            throw new NotFoundException("this course is not created")
         }
 
         if (CheckCourse.students.includes(StudentID)) {
-            throw new BadRequestException("this User already enrolled in this Course")
+            throw new ConflictException("this User already enrolled in this Course")
         }
 
         const TargetOtp = CheckCourse?.Otps.find(val => val.student?.toString() === StudentID);
 
         if (TargetOtp) {
-            throw new BadRequestException(`fail to generate new otp pls try again after ${TargetOtp.expiresAt}`)
+            throw new ConflictException(`fail to generate new otp pls try again after ${TargetOtp.expiresAt}`)
         }
 
         const [Otp] = await this.OtpModel.create({
@@ -287,11 +293,11 @@ class CourseService {
         console.log(course?.Otps)
 
         if (!course) {
-            throw new BadRequestException("this course is not created")
+            throw new NotFoundException("this course is not created")
         }
 
         if (course.students.includes(req.user?._id!)) {
-            throw new BadRequestException("this User already enrolled in this Course")
+            throw new ConflictException("this User already enrolled in this Course")
         }
 
         const TargetOtp = course?.Otps.find(val => val.student?.toString() === req.user?.id);
@@ -303,7 +309,7 @@ class CourseService {
                 TargetOtp &&
                 await CompareHash({ plaintext: Code, HashedValue: TargetOtp.code })
             )) {
-            throw new BadRequestException("invalid Otp")
+            throw new UnauthorizedException("this User cant use this otp")
         }
 
         const [updatedCourse] = await Promise.all([
@@ -332,9 +338,12 @@ class CourseService {
                 }
             })
         ])
-
+        if(!updatedCourse){
+            throw new BadRequestException("Erroe whilr activating the Course")
+        }
         return SuccesResponse({ res, data: updatedCourse })
     }
+
 
 
     addUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -347,11 +356,11 @@ class CourseService {
             }
         })
         if (!CheckCourse) {
-            throw new BadRequestException("this course is not created")
+            throw new NotFoundException("this course is not created")
         }
 
         if (CheckCourse.students.includes(StudentID)) {
-            throw new BadRequestException("this User already enrolled in this Course")
+            throw new ConflictException("this User already enrolled in this Course")
         }
 
         const Course = await this.CourseModel.findOneAndupdate({
@@ -370,7 +379,40 @@ class CourseService {
         return SuccesResponse({ res});
     };
 
+    DeleteStudent= async (req: Request, res: Response, next: NextFunction) => {
+        const { CourseId } = req.params
+        const { StudentID } = req.body
+        
+        const CheckCourse = await this.CourseModel.findOne({
+            filter: {
+                _id: CourseId
+            }
+        })
+        if (!CheckCourse) {
+            throw new NotFoundException("this course is not created")
+        }
 
+        if (!CheckCourse.students.includes(StudentID)) {
+            throw new ConflictException("this User is not enrolled in this Course")
+        }
+
+        const Course = await this.CourseModel.findOneAndupdate({
+            filter:{
+                _id: CourseId
+            },
+            update:{
+                $pull: { students: StudentID }
+            }
+        })
+
+        if(!Course){
+            throw new BadRequestException("failed to remove Student from Course")
+        }
+
+        return SuccesResponse({ res});
+    };
+
+    
 }
 
 export default new CourseService()

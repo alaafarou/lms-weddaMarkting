@@ -31,7 +31,8 @@ export enum SubjectsEnum {
   DIFFERENTIAL_EQUATIONS = 'Differential Equations',
   INTEGRAL_CALCULUS = 'Integral Calculus',
   LINEAR_ALGEBRA = 'Linear Algebra',
-  COMPLEX_NUMBERS = 'Complex Numbers'
+  COMPLEX_NUMBERS = 'Complex Numbers',
+  computer= "computer"
 }
 
 
@@ -45,6 +46,7 @@ export enum StudentEnum{
   Online="Online",
   Offline="Offline"
 }
+
 
 export enum CountryEnum{
   Egypt="egypt",

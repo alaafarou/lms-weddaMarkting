@@ -147,7 +147,7 @@ export const Decoded = async ({ Authorization,
     })
 
     if (!decoded.iat || !decoded._id) {
-        throw new BadRequestException(" invalid token payload")
+        throw new UnauthorizedException(" invalid token payload")
 
     }
 
@@ -168,7 +168,7 @@ export const Decoded = async ({ Authorization,
     }
 
     if (User.changeCredentialsTime && User.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
-        throw new NotFoundException(" this account isnot loged in")
+        throw new UnauthorizedException(" this account isnot loged in")
     }
 
     return { User, decoded }

@@ -1,4 +1,4 @@
-import { BadRequestException, UnauthorizedException } from "../Utilis/response/ErrorResponse";
+import { BadRequestException, ForbiddenException } from "../Utilis/response/ErrorResponse";
 import { Decoded, TokenEnum } from "../Utilis/Security/security";
 import type { NextFunction, Request,Response } from "express";
 import { roleEnum } from "../../Schema/UserModel";
@@ -28,7 +28,7 @@ export const Authorization =  ({
 
         if(!AcessRoles.includes(User.role))
         {
-            throw new UnauthorizedException("this is not authorized account")
+            throw new ForbiddenException("this is not authorized account")
         }
 
         req.user=User,

@@ -16,7 +16,11 @@ export const CreateCourseValidation = {
         subject: z.enum(Object.values(SubjectsEnum), {
             message: 'Invalid Subject. Please select a valid school subject'
         }),
-        image: z.string().optional()
+        image: z.object({
+            mimetype: z.string(),
+            size: z.number(),
+            path: z.string(),
+        }).optional(),
     })
 };
 
@@ -25,7 +29,6 @@ export const UpdateCourseValidation = {
         CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid Course ID format'
         }),
-        tenantId: z.string()
     }),
     body: z.strictObject({
         name: z.string().min(1, 'Course name is required').max(100, 'Course name must be less than 100 characters').optional(),

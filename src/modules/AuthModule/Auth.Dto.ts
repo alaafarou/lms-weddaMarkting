@@ -62,6 +62,10 @@ import { confirmEmailValidation, forgotpasswordOtpValidation, loginValidation, R
  *         ParentsPhone:
  *           type: string
  *           example: "+201234567890"
+ *         Country:
+ *           type: string
+ *           enum: [oman, egypt]
+ *           example: "egypt"
  *       allOf:
  *         - if:
  *             properties:

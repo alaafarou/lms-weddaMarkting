@@ -44,7 +44,7 @@ const dotenv_1 = require("dotenv");
 const DBconnection_1 = require("./modules/Utilis/DBconnection");
 const ErrorResponse_1 = require("./modules/Utilis/response/ErrorResponse");
 const CourseRouter_1 = __importDefault(require("./modules/CourseModule/CourseRouter"));
-const LmsRouter_1 = __importDefault(require("./modules/LmsModule/LmsRouter"));
+const Swagger_1 = require("./Swagger");
 (0, dotenv_1.config)({ path: (0, path_1.resolve)("./config/.env.dev") });
 const bootsrap = async () => {
     const app = (0, express_1.default)();
@@ -52,12 +52,12 @@ const bootsrap = async () => {
     app.use('/upload', express_1.default.static(path_1.default.join(__dirname, 'upload')));
     await (0, DBconnection_1.DBconnection)();
     app.use("/Auth", AuthRouter_1.default);
-    app.use("/lms", LmsRouter_1.default);
     app.use("/User", UserRouter_1.default);
     app.use("/course", CourseRouter_1.default);
     app.use(ErrorResponse_1.GlobalError);
     app.listen(process.env.PORT, () => {
         console.log(`the application is running on port ${process.env.PORT}`);
+        (0, Swagger_1.SwaggerDocs)(app, Number(process.env.PORT));
     });
 };
 bootsrap();

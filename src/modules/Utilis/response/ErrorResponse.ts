@@ -32,12 +32,17 @@ export class NotFoundException extends applicationException{
 }
 
 
-export class UnauthorizedException extends applicationException{
+export class ForbiddenException extends applicationException{
     constructor(message:string,cause?:unknown){
         super(message,403,cause)
     }
 }
 
+export class UnauthorizedException extends applicationException{
+    constructor(message:string,cause?:unknown){
+        super(message,401,cause)
+    }
+}
 
 export class ConflictException extends applicationException{
     constructor(message:string,cause?:unknown){

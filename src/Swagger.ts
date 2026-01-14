@@ -31,6 +31,11 @@ const options: swaggerJsdoc.Options = {
     apis: [
         './src/modules/AuthModule/AuthRouter.ts',
         './src/modules/AuthModule/Auth.Dto.ts',
+
+        './src/modules/CourseModule/Course.Dto.ts',
+        './src/modules/CourseModule/CourseRouter.ts',
+
+        
         './dist/modules/AuthModule/AuthRouter.js',
         './dist/modules/AuthModule/Auth.Dto.js'
     ],
