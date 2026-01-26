@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { ActivateCodeValidation, checkCourseParam, CreateCourseValidation, GetAllCoursesValidation, UpdateCourseValidation } from "./CourseValidaton";
+import { ActivateCodeValidation, checkCourseParam, CreateCourseValidation, GenerateCodeValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, UpdateCourseValidation } from "./CourseValidaton";
 import CourseService from "./CourseService";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
@@ -12,14 +12,12 @@ const CourseRouter = Router()
 
 CourseRouter.use("/:CourseId/section",SectionRouter)
 
-
-
 /**
  * @openapi
  * /courses/:
  *   post:
  *     tags: [Courses]
- *     summary: Create new course (Admin only and its BeareToken = System)
+ *     summary: Create new course (Admin only and its BearerToken = System)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -27,10 +25,10 @@ CourseRouter.use("/:CourseId/section",SectionRouter)
  *       content:
  *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/CreateCourseBody'  
- *             encoding:
- *               image:
- *                 contentType: image/jpeg, image/png, image/webp
+ *             $ref: '#/components/schemas/CreateCourseBody'
+ *           encoding:
+ *             image:
+ *               contentType: image/jpeg, image/png, image/webp
  *     responses:
  *       '201':
  *         description: Course created successfully
@@ -39,27 +37,34 @@ CourseRouter.use("/:CourseId/section",SectionRouter)
  *             schema:
  *               type: object
  *               properties:
- *                 message: { type: string, example: "done" }
- *
- *       '400': { description:  missing authorization header - invalide image type ' }
- *       '401': { description: 'Unauthorized - Invalid token' }
- *       '403': { description: 'Forbidden - Admin role required' }
- *       '404': { description:  'this Account is not created' }
- *       '409': { description:  'found another Course with that name ' }
- *  
+ *                 data:
+ *                   $ref: '#/components/schemas/CreateCourseBody'
+ *       '400':
+ *         description: missing authorization header - invalid image type or failed to create this course
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       '401':
+ *         description: Unauthorized - Invalid token
+ *       '403':
+ *         description: Forbidden - Admin role required
+ *       '404':
+ *         description: this Account is not created
+ *       '409':
+ *         description: found another Course with that name - this course with this name already created
  */
 CourseRouter.post("/",
     Authorization({ AcessRoles:[roleEnum.admin] }),
     localFileUpload({validation:fileValidation.image,folder:folderEnum.Courses}).single("image"),
     validation(CreateCourseValidation), CourseService.createCourse)
 
-
 /**
  * @openapi
  * /courses/:CourseId:
  *   patch:
  *     tags: [Courses]
- *     summary: Updates Course (Admin only and its BeareToken = System)
+ *     summary: Updates Course (Admin only and its BearerToken = System)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -68,16 +73,16 @@ CourseRouter.post("/",
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of course to update
+ *         description: MongoDB ObjectId of course to update
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
  *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/CourseUpdateBody'  
- *             encoding:
- *               image:
- *                 contentType: image/jpeg, image/png, image/webp
+ *             $ref: '#/components/schemas/CourseUpdateBody'
+ *           encoding:
+ *             image:
+ *               contentType: image/jpeg, image/png, image/webp
  *     responses:
  *       '200':
  *         description: Course updated successfully
@@ -86,14 +91,22 @@ CourseRouter.post("/",
  *             schema:
  *               type: object
  *               properties:
- *                 message: { type: string, example: "done" }
- *
- *       '400': { description:  missing authorization header - invalide image type ' }
- *       '401': { description: 'Unauthorized - Invalid token' }
- *       '403': { description: 'Forbidden - Admin role required' }
- *       '404': { description:  'this Account is not created' }
- *       '409': { description:  'found another Course with that name ' }
- *  
+ *                 data:
+ *                   $ref: '#/components/schemas/CourseUpdateBody'
+ *       '400':
+ *         description: missing authorization header - invalid image type or sorry failed to update course please try again later
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       '401':
+ *         description: Unauthorized - Invalid token
+ *       '403':
+ *         description: Forbidden - Admin role required
+ *       '404':
+ *         description: this Account is not created or Course not found
+ *       '409':
+ *         description: found another Course with that name - therename already used
  */
 CourseRouter.patch("/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
@@ -140,7 +153,6 @@ CourseRouter.delete("/freeze/:CourseId",
 
 
 
-
 /**
  * @openapi
  * Courses/restore/:CourseId:
@@ -178,7 +190,6 @@ CourseRouter.patch("/restore/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(checkCourseParam), CourseService.RestoreCourse)
 
- 
 
 /**
  * @openapi
@@ -219,68 +230,12 @@ CourseRouter.delete("/Delete/:CourseId",
 
 
 
-
 /**
  * @openapi
  * /courses:
  *   get:
  *     tags: [Courses]
- *     summary: Get all courses with optional filters (Admin  and its BeareToken = System and User and its BearerToken=Bearer)
- *     parameters:
- *       - in: query
- *         name: page
- *         required: false
- *         schema:
- *           type: number
- *           example: 1
- *       - in: query
- *         name: size
- *         required: false
- *         schema:
- *           type: number
- *           example: 10
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/GetAllCoursesBody'
- *     responses:
- *       '200':
- *         description: Courses retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 courses:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Course'
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     total: { type: number }
- *                     page: { type: number }
- *                     size: { type: number }
- *       '400': { description:  missing authorization header - invalide image type ' }
- *       '401': { description: 'Unauthorized - Invalid token' }
- *       '403': { description: 'Forbidden - Admin role required' }
- *       '404': { description: 'current Account is not created - No courses found matching criteria' }
- */
-CourseRouter.get("/",
-    Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
-    validation(GetAllCoursesValidation),CourseService.GetAllCourses)
-
-
-
-
-
-/**
- * @openapi
- * /courses/Archived:
- *   get:
- *     tags: [Courses]
- *     summary: Get all courses Archived with filters (Admin  and its BeareToken = System and User and its BearerToken=Bearer)
+ *     summary: Get all courses with optional filters (Admin and User)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -309,26 +264,40 @@ CourseRouter.get("/",
  *             schema:
  *               type: object
  *               properties:
- *                 courses:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Course'
- *                 pagination:
+ *                 data:
  *                   type: object
  *                   properties:
- *                     total: { type: number }
- *                     page: { type: number }
- *                     size: { type: number }
- *       '400': { description:  missing authorization header - invalide image type ' }
- *       '401': { description: 'Unauthorized - Invalid token' }
- *       '403': { description: 'Forbidden - Admin role required' }
- *       '404': { description: 'current Account is not created - no Courses can be Found' }
- *  
- */    
-CourseRouter.get("/Archived",
-        Authorization({ AcessRoles: [roleEnum.admin] }),
-        validation(GetAllCoursesValidation),CourseService.GetAllCoursesArchived)
-
+ *                     Courses:
+ *                       type: object
+ *                       properties:
+ *                         pages:
+ *                           type: number
+ *                         countdoc:
+ *                           type: number
+ *                         result:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/GetAllCoursesBody'
+ *                         currentpage:
+ *                           type: number
+ *                         size:
+ *                           type: number
+ *       '400':
+ *         description: missing authorization header - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       '401':
+ *         description: Unauthorized - Invalid token
+ *       '403':
+ *         description: Forbidden - Admin or User role required
+ *       '404':
+ *         description: current Account is not created - No courses found matching criteria
+ */
+CourseRouter.get("/",
+    Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
+    validation(GetAllCoursesValidation),CourseService.GetAllCourses)
 
 
 /**
@@ -352,8 +321,8 @@ CourseRouter.get("/Archived",
  *             schema:
  *               type: object
  *               properties:
- *                 message: { type: string, example: "done" }
- *
+ *                 data:
+ *                   $ref: '#/components/schemas/CreateCourseBody'
  *       '400': { description:  missing authorization header - invalide image type ' }
  *       '401': { description: 'Unauthorized - Invalid token' }
  *       '403': { description: 'Forbidden - Admin role required' }
@@ -361,16 +330,14 @@ CourseRouter.get("/Archived",
  */
 CourseRouter.get("/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
-    validation(checkCourseParam),CourseService.GetCourse)  
-
-
+    validation(getcourseValidation),CourseService.GetCourse)  
 
 /**
  * @openapi
- * /courses/archived/:CourseId:
+ * /courses/students/:CourseId:
  *   get:
  *     tags: [Courses]
- *     summary: get Course archived by id (Admin  and its BeareToken = System)
+ *     summary: Get course students with optional user filters (Admin only)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -379,86 +346,106 @@ CourseRouter.get("/:CourseId",
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of course to update
- *     responses:
- *       '200':
- *         description: Course updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message: { type: string, example: "done" }
- *
- *       '400': { description:  missing authorization header - invalide image type ' }
- *       '401': { description: 'Unauthorized - Invalid token' }
- *       '403': { description: 'Forbidden - Admin role required' }
- *       '404': { description:  'this Account is not created or this course is not created ' }
- */
-CourseRouter.get("/archived/:CourseId",
-    Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(checkCourseParam),CourseService.GetCourseArchived) 
-    
-
-/**
- * @openapi
- * /courses/GenerateCode/:/CourseId:
- *   post:
- *     tags: [Courses]
- *     summary: Generate enrollment code for course-student pair (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: CourseId
- *         required: true
+ *         description: MongoDB ObjectId of course
+ *       - in: query
+ *         name: page
+ *         required: false
  *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *         description: Valid MongoDB ObjectId of the course
+ *           type: number
+ *           example: 1
+ *       - in: query
+ *         name: size
+ *         required: false
+ *         schema:
+ *           type: number
+ *           example: 10
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               StudentID:
+ *               fullname:
  *                 type: string
- *                 example: "507f191e810c19729de860ea"
- *                 description: Valid MongoDB ObjectId of the student
- *             required: [StudentID]
- *             additionalProperties: false
+ *                 example: "John"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john@example.com"
  *     responses:
- *       '201':
- *         description: Enrollment code generated successfully
+ *       '200':
+ *         description: Students retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 success: { type: boolean, example: true }
- *                 message: { type: string, example: "Enrollment code generated" }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     pages:
+ *                       type: number
+ *                     countdoc:
+ *                       type: number
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           courseId:
+ *                             type: string
+ *                           UserId:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                               email:
+ *                                 type: string
+ *                               fullname:
+ *                                 type: string
+ *                               lastname:
+ *                                 type: string
+ *                               firstname:
+ *                                 type: string
+ *                               phone:
+ *                                 type: string
+ *                           CreatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           LectureId:
+ *                             type: string
+ *                           UpdatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           UpdatedBy:
+ *                             type: string
+ *                           DeletedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           DeletedBy:
+ *                             type: string
+ *                     currentpage:
+ *                       type: number
+ *                     size:
+ *                       type: number
  *       '400':
- *         description: Invalid CourseId or StudentID format
+ *         description: Invalid Course ID format or validation error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               properties:
- *                 message: { type: string, example: "Invalid Course ID format" }
  *       '401':
  *         description: Unauthorized - Invalid token
  *       '403':
  *         description: Forbidden - Admin role required
  *       '404':
- *         description: Course or Student not found
- *       '409':
- *         description: Enrollment code already exists for this pair
- */   
-CourseRouter.post("/GenerateCode/:CourseId",
+ *         description: No course found matching criteria
+ */
+CourseRouter.get("/students/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(checkCourseParam),CourseService.GenerateCode) 
+    validation(getCoursestudentsValidation),CourseService.GetCourseStudents)  
 
 
 /**
@@ -466,7 +453,7 @@ CourseRouter.post("/GenerateCode/:CourseId",
  * /courses/activateCourse/:CourseId:
  *   patch:
  *     tags: [Courses]
- *     summary: Activate course enrollment using 6-digit OTP code (User only)
+ *     summary: Activate course with OTP code (User only)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -475,24 +462,22 @@ CourseRouter.post("/GenerateCode/:CourseId",
  *         required: true
  *         schema:
  *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *         description: Valid MongoDB ObjectId of the course to activate
+ *         description: MongoDB ObjectId of course
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [Code]
  *             properties:
  *               Code:
  *                 type: string
- *                 pattern: '^[0-9]{6}$'
+ *                 pattern: '^\d{6}$'
  *                 minLength: 6
  *                 maxLength: 6
  *                 example: "123456"
- *                 description: 6-digit numeric OTP code
- *             required: [Code]
- *             additionalProperties: false
+ *                 description: 6-digit activation code
  *     responses:
  *       '200':
  *         description: Course activated successfully
@@ -501,34 +486,30 @@ CourseRouter.post("/GenerateCode/:CourseId",
  *             schema:
  *               type: object
  *               properties:
- *                 success: { type: boolean, example: true }
- *                 message: { type: string, example: "Course activated successfully" }
- *                 data:
- *                   type: object
- *                   properties:
- *                     courseId: { type: string, example: "507f1f77bcf86cd799439011" }
- *                     studentId: { type: string, example: "507f191e810c19729de860ea" }
- *                     activatedAt: { type: string, format: date-time }
+ *                 message:
+ *                   type: string
+ *                   example: "done"
  *       '400':
- *         description: Invalid OTP format (must be exactly 6 digits)
+ *         description: Invalid Course ID format or Sorry Error while Activating Course
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               properties:
- *                 message: { type: string, example: "OTP must be exactly 6 digits" }
  *       '401':
- *         description: Unauthorized - invalid user token  or this user cant use this otp
+ *         description: Unauthorized - Invalid token
+ *       '403':
+ *         description: Forbidden - User role required
  *       '404':
- *         description: Course not found or code expired/invalid
+ *         description: this Account is not created or this ACtivation Code is Invalid
  *       '409':
- *         description: Course already activated for this user
- * 
+ *         description: this User already enrolled in this Course
  */
 CourseRouter.patch("/activateCourse/:CourseId",
     Authorization({ AcessRoles: [roleEnum.user] }),
     validation(ActivateCodeValidation),CourseService.ActivateCourse) 
 
+
+  
 /**
  * @openapi
  * /courses/AddStudent/:CourseId:
@@ -590,13 +571,12 @@ CourseRouter.patch("/AddStudent/:CourseId",
     validation(checkCourseParam),CourseService.addUser) 
 
 
-
 /**
  * @openapi
- * /courses/AddStudent/:CourseId:
+ * /courses/RemoveStudent/:CourseId:
  *   patch:
  *     tags: [Courses]
- *     summary: Remove student from Course Manually  (Admin only)
+ *     summary: Remove student from course (Admin only)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -605,51 +585,102 @@ CourseRouter.patch("/AddStudent/:CourseId",
  *         required: true
  *         schema:
  *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *         description: Valid MongoDB ObjectId of the course
+ *         description: MongoDB ObjectId of course
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [StudentID]
  *             properties:
  *               StudentID:
  *                 type: string
- *                 example: "507f191e810c19729de860ea"
- *                 description: Valid MongoDB ObjectId of the student
- *             required: [StudentID]
- *             additionalProperties: false
+ *                 description: MongoDB ObjectId of student user
+ *                 example: "507f1f77bcf86cd799439011"
  *     responses:
- *       '201':
- *         description: Enrollment code generated successfully
+ *       '200':
+ *         description: Student removed successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 success: { type: boolean, example: true }
- *                 message: { type: string, example: "Enrollment code generated" }
+ *                 message:
+ *                   type: string
+ *                   example: "done"
  *       '400':
- *         description: Invalid CourseId or StudentID format
+ *         description: Invalid Student ID format
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               properties:
- *                 message: { type: string, example: "Invalid Course ID format" }
  *       '401':
  *         description: Unauthorized - Invalid token
  *       '403':
  *         description: Forbidden - Admin role required
  *       '404':
- *         description: Course or Student not found
- *       '409':
- *         description: Enrollment code already exists for this pair
- */ 
+ *         description: sorry cant Delete Student as its Already didnt Enrolle in this Course
+ */
 CourseRouter.patch("/RemoveStudent/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(checkCourseParam),CourseService.DeleteStudent) 
+
+/**
+ * @openapi
+ * /courses/Grade_Semester_Course:
+ *   get:
+ *     tags: [Courses]
+ *     summary: Get active courses by grade level and semester (Admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               GradeLevel:
+ *                 type: string
+ *                 enum: [KG1, KG2, Grade1, Grade2, Grade3, Grade4, Grade5, Grade6, Grade7, Grade8, Grade9, Grade10, Grade11, Grade12]
+ *                 example: "Grade1"
+ *               Semester:
+ *                 type: string
+ *                 enum: [First, Second]
+ *                 example: "First"
+ *     responses:
+ *       '200':
+ *         description: Courses retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                         example: "Mathematics Grade 1"
+ *       '400':
+ *         description: Invalid Grade Level or Semester
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       '401':
+ *         description: Unauthorized - Invalid token
+ *       '403':
+ *         description: Forbidden - Admin role required
+ */
+ CourseRouter.get("/Grade_Semester_Course",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(checkCourseParam),CourseService.Grade_Semester_Course) 
+
 
 
 

@@ -55,9 +55,9 @@ class AuthenticationService {
             throw new ConflictException("this user already created")
         }
 
-        if (req.body.ParentsPhone) {
-            req.body.ParentsPhone = await GenerateHash({ plaintext: req.body.phone })
-        }
+        // if (req.body.ParentsPhone) {
+        //     req.body.ParentsPhone = await GenerateHash({ plaintext: req.body.phone })
+        // }
 
         const [user] = await this.UserModel.create({
             data: [
@@ -77,82 +77,82 @@ class AuthenticationService {
             throw new BadRequestException("this user already created")
         }
 
-        await this.SendEmail({ userID: user._id })
+        // await this.SendEmail({ userID: user._id })
 
         return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
     }
 
-     ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { email, code } = req.body
+    //  ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    //     const { email, code } = req.body
 
-        const User = await this.UserModel.findOne({
-            filter: {
-                email,
-                confrimEmailAt: { $exists: false }
-            },
-            options: {
-                populate: [
-                    {
-                        path: "Otps",
-                        match: { type: OtpEnum.confirmEmail }
-                    }]
-            }
-        })
+    //     const User = await this.UserModel.findOne({
+    //         filter: {
+    //             email,
+    //             confrimEmailAt: { $exists: false }
+    //         },
+    //         options: {
+    //             populate: [
+    //                 {
+    //                     path: "Otps",
+    //                     match: { type: OtpEnum.confirmEmail }
+    //                 }]
+    //         }
+    //     })
 
-        if (!User) {
-            throw new NotFoundException("this account does not exists")
-        }
+    //     if (!User) {
+    //         throw new NotFoundException("this account does not exists")
+    //     }
 
-        if (
-            !(
-                User.Otps?.length &&
-                await CompareHash({ plaintext: code, HashedValue: User.Otps[0]!.code })
-            )) {
-            throw new BadRequestException("invalid otp")
-        }
+    //     if (
+    //         !(
+    //             User.Otps?.length &&
+    //             await CompareHash({ plaintext: code, HashedValue: User.Otps[0]!.code })
+    //         )) {
+    //         throw new BadRequestException("invalid otp")
+    //     }
 
-        User.confrimEmailAt = new Date()
+    //     User.confrimEmailAt = new Date()
 
-        await User.save()
+    //     await User.save()
 
-        await this.OtpModel.findOneAndDelete({
-            filter: {
-                _id: User.Otps[0]!._id
-            }
-        })
-        return SuccesResponse<UserResponse>({ res,statuscode:200,message:"Email confirmed",data:{ user: User } })
-    }
+    //     await this.OtpModel.findOneAndDelete({
+    //         filter: {
+    //             _id: User.Otps[0]!._id
+    //         }
+    //     })
+    //     return SuccesResponse<UserResponse>({ res,statuscode:200,message:"Email confirmed",data:{ user: User } })
+    // }
 
-    ResendConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { email } = req.body
+    // ResendConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    //     const { email } = req.body
 
-        const User = await this.UserModel.findOne({
-            filter: {
-                email,
-                confrimEmailAt: { $exists: false }
-            },
-            options: {
-                populate: [
-                    {
-                        path: "Otps",
-                        match: { type: OtpEnum.confirmEmail }
-                    }]
-            }
-        })
+    //     const User = await this.UserModel.findOne({
+    //         filter: {
+    //             email,
+    //             confrimEmailAt: { $exists: false }
+    //         },
+    //         options: {
+    //             populate: [
+    //                 {
+    //                     path: "Otps",
+    //                     match: { type: OtpEnum.confirmEmail }
+    //                 }]
+    //         }
+    //     })
 
-        if (!User) {
-            throw new NotFoundException("this account does not exists or Already confirmed")
-        }
+    //     if (!User) {
+    //         throw new NotFoundException("this account does not exists or Already confirmed")
+    //     }
 
 
-        if (User.Otps?.length && User.Otps) {
-            throw new ConflictException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
-        }
+    //     if (User.Otps?.length && User.Otps) {
+    //         throw new ConflictException(`fail to generate new otp pls try again after ${User.Otps[0]!.expiresAt}`)
+    //     }
 
-        await this.SendEmail({ userID: User._id })
+    //     await this.SendEmail({ userID: User._id })
 
-        return SuccesResponse({ res ,statuscode:200, data: {} })
-    }
+    //     return SuccesResponse({ res ,statuscode:200, data: {} })
+    // }
 
 
     forgotpasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -271,9 +271,9 @@ class AuthenticationService {
             throw new NotFoundException("this account doesnt exists")
         }
 
-        if (!User.confrimEmailAt) {
-            throw new BadRequestException("this account is not verified yet")
-        }
+        // if (!User.confrimEmailAt) {
+        //     throw new BadRequestException("this account is not verified yet")
+        // }
 
         if (! await CompareHash({ plaintext: password, HashedValue: User.password })) {
             throw new BadRequestException("sorry wrong password or Email")

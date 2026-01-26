@@ -23,8 +23,7 @@ export enum providerEnum {
 
 export interface IUser {
   fullname: string,
-  firstname: string,
-  lastname: string,
+
 
   email: string,
   confrimEmailAt?: Date,
@@ -35,14 +34,15 @@ export interface IUser {
 
   phone: string
   ParentsPhone?: string
-
-  RestoredAt?: Date,
-  RestoredBy?: Types.ObjectId,
   Country?: CountryEnum,
   Gradelevel?: GradeLevelEnum,
   StudentType?: StudentEnum,
-
-
+  
+  
+  
+  RestoredAt?: Date,
+  RestoredBy?: Types.ObjectId,
+  
   DeletedAt?: Date,
   DeletedBy?: Types.ObjectId,
 
@@ -56,12 +56,7 @@ export interface IUser {
 
 export const userSchema = new Schema<IUser>({
 
-  lastname: {
-    type: String,
-    required: true
-  },
-
-  firstname: {
+  fullname: {
     type: String,
     required: true
   },
@@ -79,8 +74,8 @@ export const userSchema = new Schema<IUser>({
 
   phone: {
     type: String,
-    unique:true,
-    required:true
+    unique: true,
+    required: true
   },
 
   ParentsPhone: {
@@ -88,7 +83,7 @@ export const userSchema = new Schema<IUser>({
     required: function (this) {
       return this.role === roleEnum.user
     },
-    unique:true
+    unique: true
   },
 
   Country: {
@@ -115,7 +110,7 @@ export const userSchema = new Schema<IUser>({
     },
   },
 
- 
+
   RestoredAt: Date,
   RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 
@@ -131,17 +126,11 @@ export const userSchema = new Schema<IUser>({
 
 }, {
   timestamps: true,
-    toJSON: { virtuals: true },
+  toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
-userSchema.virtual("fullname").set(function (value: String) {
-  const [firstname, lastname] = value.split(" ") || []
-  this.set({ firstname, lastname })
-})
-  .get(function () {
-    return this.firstname + " " + this.lastname
-  })
+
 
 userSchema.virtual("Otps", {
   localField: "_id", // primary key 

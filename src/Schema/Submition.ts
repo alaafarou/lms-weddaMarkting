@@ -7,9 +7,17 @@ export interface ISubmition {
     Student: Types.ObjectId | IUser,
     Exam: Types.ObjectId | IExam,
     grade?: number,
-    CreatedAt: Date,
+    averageScore: number
+    createdAt: Date,
     Ispassed?: boolean,
-    Answers:[{index:number,answer:string}]
+    Answers: [{ index: number, answer: string }]
+
+    RestoredAt?: Date,
+    RestoredBy?: Types.ObjectId,
+
+    DeletedAt?: Date,
+    DeletedBy?: Types.ObjectId,
+
 }
 
 export const SubmissionSchema = new Schema<ISubmition>({
@@ -25,24 +33,23 @@ export const SubmissionSchema = new Schema<ISubmition>({
     },
     grade: {
         type: Number,
-        default:0
+        default: 0
     },
-    Answers:[{
-        index:{
-            type:Number,
-            required:true
-        },
-        answer:{
-            type:String,
-            required:true
-        }
-    }],
-    Ispassed: {type:Boolean,default:false},
-
+    averageScore: Number,
+    Answers: [String],
+    Ispassed: { type: Boolean },
     
+    RestoredAt: Date,
+    RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
+
+
+    DeletedAt: Date,
+    DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+
+
 }, { timestamps: true })
 
 
 
-export type SchemaHydratedDocument =  HydratedDocument<ISubmition>
-export const SubmissionModel = model<ISubmition>("submission",SubmissionSchema)
+export type SchemaHydratedDocument = HydratedDocument<ISubmition>
+export const SubmissionModel = model<ISubmition>("submission", SubmissionSchema)

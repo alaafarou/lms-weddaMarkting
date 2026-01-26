@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { confirmEmailValidation, forgotpasswordOtpValidation, loginValidation, ResendConfrimEmailValidation, ResendForgotPasswordOtpValidation, ResetpasswordValidation, SingupValidation } from "./AuthValidation";
+import { forgotpasswordOtpValidation, loginValidation,  ResendForgotPasswordOtpValidation, ResetpasswordValidation, SingupValidation } from "./AuthValidation";
 import AuthService from "./AuthService";
 
 
@@ -65,7 +65,7 @@ AuthRouter.post("/signup",validation(SingupValidation),AuthService.Singup)
  *       409: { description: "Email already confirmed" }
  *       404: {  description: "Account does not exist or already confirmed"}
  */
-AuthRouter.patch("/confrimEmail",validation(confirmEmailValidation),AuthService.ConfrimEmail)
+// AuthRouter.patch("/confrimEmail",validation(confirmEmailValidation),AuthService.ConfrimEmail)
 
 /**
  * @openapi
@@ -92,7 +92,7 @@ AuthRouter.patch("/confrimEmail",validation(confirmEmailValidation),AuthService.
  *       404: {  description: "Account does not exist Or Email already confirmed "}
  *       409: { description:  " cant generate otp as there is already otp created" }
  */
-AuthRouter.post("/resendconfrimEmail",validation(ResendConfrimEmailValidation),AuthService.ResendConfrimEmail)
+// AuthRouter.post("/resendconfrimEmail",validation(ResendConfrimEmailValidation),AuthService.ResendConfrimEmail)
 
 
 

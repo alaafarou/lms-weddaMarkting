@@ -10,7 +10,6 @@ import { DeleteUserValidation, freezeUserValidation, logoutValidation, restoreUs
 const UserRouter = Router()
 
 
-
 UserRouter.patch("/profile-image",
     Authorization({ AcessRoles: endpoints.profileimage }),
     localFileUpload({

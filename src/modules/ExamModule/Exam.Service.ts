@@ -2,16 +2,21 @@ import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
 import type { Request, Response, NextFunction } from "express";
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory";
 import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory";
-import { BadRequestException } from "../Utilis/response/ErrorResponse";
+import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { Types } from "mongoose";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
-import { ExamModule } from "../../Schema/Exam";
+import { ExamHydratedDocument, ExamModule, IExam } from "../../Schema/Exam";
 import { CourseModel } from "../../Schema/Course";
 import { SectionModel } from "../../Schema/Section";
 import { SubmissionModel } from "../../Schema/Submition";
 import { UserModel } from "../../Schema/UserModel";
+import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
+import { EnrollmentModel } from "../../Schema/Enrollment";
+import { IMultter } from "../Utilis/multer/cloud.multer";
+import { QuestionHydratedDocument, QuestionModel } from "../../Schema/Questions";
+import { QuestionRepositry } from "../Utilis/DatabasePattern/QuestionsReposatry";
 
 
 
@@ -20,55 +25,141 @@ class ExamService {
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
-    private readonly SubmissionModel: SubmissionReposatory =new SubmissionReposatory(SubmissionModel)
+    private readonly SubmissionModel: SubmissionReposatory = new SubmissionReposatory(SubmissionModel)
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
+    private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
+    private readonly QuestionModel: QuestionRepositry = new QuestionRepositry(QuestionModel)
 
     constructor() { }
 
+    FlatenQuestions = async (req: Request, res: Response, next: NextFunction) => {
+        const questionsArray = JSON.parse(req.body.questions);
+        req.body.questions = questionsArray,
+            next()
+    }
+
 
     CreateExam = async (req: Request, res: Response, next: NextFunction) => {
-        const { SectionID } = req.params
-        const { questions, name, Duration } = req.body
-        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID } })
+        const { SectionID, CourseId } = req.params
+        const { name, Duration, questions } = req.body
+        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID, DeletedAt: { $exists: false } } })
+        const files = req.files as IMultter[];
         if (!checkSection) {
             throw new BadRequestException("invalid Section")
         }
-        if (!questions || questions.length === 0) {
-            throw new BadRequestException("Exam must have at least one Question ")
-        }
+
         const [Exam] = await this.ExamModel.create({
             data: [
                 {
                     SectionID: Types.ObjectId.createFromHexString(SectionID!),
                     CreatedBy: req.user?._id!,
+                    CourseID: Types.ObjectId.createFromHexString(CourseId!),
                     name,
-                    questions,
-                    Duration
+                    Duration,
                 }
             ]
         }) || []
+
         if (!Exam) {
-            throw new BadRequestException("sorry Couldnt create exam")
+            throw new BadRequestException("failed to Create Exam please try later ")
         }
+
+        const finalQuestions: QuestionHydratedDocument[] = questions.map((q: any, index: number) => ({
+            ...q,
+            ExamID: Exam?._id, // Linking child to parent
+            CreatedBy: req.user?._id,
+            image: files[index] ? files[index].finalpath : null
+        }));
+
+        const created_Questions = await QuestionModel.insertMany(finalQuestions)
+
+        if (!created_Questions) {
+            await this.ExamModel.findOneAndDelete({
+                filter: {
+                    _id: Exam._id
+                }
+            })
+            throw new BadRequestException("sorry failes to create exam ")
+        }
+
+
         return SuccesResponse({ res, data: Exam })
     }
-    
+
+    updateExam = async (req: Request, res: Response, next: NextFunction) => {
+        const { SectionID, ExamID } = req.params
+        const { name, Duration, questions } = req.body
+        const checkSection = await this.ExamModel.findOne({ filter: { _id: SectionID, DeletedAt: { $exists: false } } })
+        const files = req.files as IMultter[];
+        if (!checkSection) {
+            throw new BadRequestException("invalid Section")
+        }
+
+        const Exam = await this.ExamModel.findOneAndupdate({
+            filter: {
+                _id: ExamID
+            },
+            update:{
+                name,
+                Duration,
+            }
+        }) 
+
+
+
+        if (!Exam) {
+            throw new BadRequestException("this Exam is not created")
+        }
+
+
+
+        const finalQuestions: QuestionHydratedDocument[] = questions.map((q: any, index: number) => ({
+            ...q,
+            ExamID: Exam?._id, // Linking child to parent
+            CreatedBy: req.user?._id,
+            image: files[index] ? files[index].finalpath : null
+        }));
+
+        const created_Questions = await QuestionModel.insertMany(finalQuestions)
+
+        if (!created_Questions) {
+            await this.ExamModel.findOneAndDelete({
+                filter: {
+                    _id: Exam._id
+                }
+            })
+            throw new BadRequestException("sorry failes to create exam ")
+        }
+
+
+        return SuccesResponse({ res, data: Exam })
+    }
+
 
     startExam = async (req: Request, res: Response, next: NextFunction) => {
-        const { CourseID, ExamID } = req.params
-        const [CheckEnrolled, Exam] = await Promise.all(
+        const { CourseId, ExamID } = req.params
+
+        const [CheckEnrolled, Exam, checkSubmission] = await Promise.all(
             [
-                this.CourseModel.findOne({
+                this.EnrollmentModel.findOne({
                     filter: {
-                        _id: CourseID,
-                        students: { $in: [req.user?._id] }
+                        courseId: Types.ObjectId.createFromHexString(CourseId!),
+                        UserId: req.user?.id,
                     },
                 }),
                 this.ExamModel.findOne({
                     filter: {
-                        _id: ExamID
+                        _id: ExamID,
+                        CourseID: Types.ObjectId.createFromHexString(CourseId!)
+                    }
+                }),
+                this.SubmissionModel.findOne({
+                    filter: {
+                        Exam: Types.ObjectId.createFromHexString(ExamID!),
+                        Student: req.user?._id!,
                     }
                 })
+
             ]
         )
         if (!CheckEnrolled) {
@@ -76,6 +167,9 @@ class ExamService {
         }
         if (!Exam) {
             throw new BadRequestException("sorry this exam is not Created in the Course")
+        }
+        if (checkSubmission) {
+            throw new ConflictException("this Student Already Submitted Exam")
         }
         const [Submission] = await this.SubmissionModel.create({
             data: [
@@ -89,58 +183,82 @@ class ExamService {
         if (!Submission) {
             throw new BadRequestException("sorry Errore starting Exam")
         }
+        return SuccesResponse({ res, data: Submission })
     }
 
 
     submiteExame = async (req: Request, res: Response, next: NextFunction) => {
-        const { ExamID } = req.params
-        const { Answers } = req.body as { Answers: [{ index: number, answer: string }] }
-        let grade: number = 0
 
-        const [Submission, Exam] = await Promise.all(
+        const { ExamID } = req.params
+        const { Answers } = req.body as { Answers: string[] }
+        let TotalScore = 0
+        let EarnedScore = 0
+
+
+        const [Submission, Questions] = await Promise.all(
             [
+
                 this.SubmissionModel.findOne({
                     filter: {
-                        Exam: ExamID,
+                        Exam: Types.ObjectId.createFromHexString(ExamID!),
                         Student: req.user?._id
+                    },
+                    options: {
+                        populate: [{
+                            path: "Exam",
+                            select: "Duration"
+                        }]
                     }
                 }),
-                this.ExamModel.findOne({
+                this.QuestionModel.find({
                     filter: {
-                        _id: ExamID
+                        ExamID: Types.ObjectId.createFromHexString(ExamID!)
                     }
                 })
+
             ]
         )
-        if (!Exam || !Submission) {
-            throw new BadRequestException("Erroe while Submiting Answer")
+
+        if (!Questions.length || !Submission) {
+            throw new NotFoundException("Sorry no Questions can be found to submit annswers")
         }
 
-        Exam.questions.forEach((Question, index) => {
-            const StudentAnswer = Answers.find(value => value.index === index)
-            if (StudentAnswer?.answer === Question.correctAnswer) {
-                grade++
+        Questions.forEach((Question, index) => {
+            TotalScore = TotalScore + Number(Question.Score)
+
+            if (Question.correctAnswer === Answers[index]) {
+                EarnedScore = EarnedScore + Number(Question.Score)
             }
         })
 
-        const percentage = (grade / Exam.questions.length) * 100;
+
+
+
+
+        const percentage = (EarnedScore / TotalScore) * 100;
+        console.log(percentage)
         const Ispassed: boolean = percentage > 60 ? true : false
 
 
-        const startExam = Submission.CreatedAt.getDate()
-        const ExamTime = Exam.Duration * 1000;
+        const startExam = Submission.createdAt.getTime();
+        const ExamData = Submission.Exam as unknown as IExam; // Use your Interface
+        const ExamTime = ExamData.Duration * 1000 * 60;
 
-        if (Date.now() > (startExam + ExamTime)) {
-
-            return SuccesResponse({ res, message: "sorry the Exam time is finished Good luck next time" })
+        // 1. Check if Time is up (added 30s grace period for network lag)
+        const gracePeriod = 30 * 1000;
+        if (Date.now() > (startExam + ExamTime + gracePeriod)) {
+            return SuccesResponse({
+                res,
+                message: "sorry the Exam time is finished Good luck next time"
+            });
         }
 
-        const UpdateSubmission = await this.SubmissionModel.updateOne({
+        const UpdateSubmission = await this.SubmissionModel.findOneAndupdate({
             filter: {
                 _id: Submission._id
             },
             update: {
-                grade,
+                grade: EarnedScore,
                 Ispassed,
                 Answers
             }
@@ -156,17 +274,30 @@ class ExamService {
 
     DeleteExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
-        // const checkExam = await this.ExamModel.findOne({ filter: { _id: ExamID } })
-        // if (!checkExam) {
-        //     throw new BadRequestException("invalid Exam")
-        // }
-        const Exam = await this.ExamModel.findOneAndDelete({
-            filter: {
-                ExamID,
-                DeletedAt: { $exists: true }
-            }
-        })
-        if (!Exam) {
+
+        const [Submissions, Exam, questions] = await Promise.all(
+            [
+                this.SubmissionModel.deleteMany({
+                    filter: {
+                        Exam: Types.ObjectId.createFromHexString(ExamID!),
+                    }
+                }),
+
+                this.ExamModel.findOneAndDelete({
+                    filter: {
+                        _id: ExamID,
+                        DeletedAt: { $exists: true }
+                    }
+                }),
+                this.QuestionModel.deleteMany({
+                    filter: {
+                        ExamID: Types.ObjectId.createFromHexString(ExamID!),
+                    }
+                })
+            ]
+        )
+
+        if (!Exam || !Submissions || !questions) {
             throw new BadRequestException("Error deleting exam")
         }
         return SuccesResponse({ res })
@@ -175,21 +306,55 @@ class ExamService {
 
     freezExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
-        const Exam = await this.ExamModel.findOneAndupdate({
-            filter: { _id: ExamID, DeletedAt: { $exists: false } },
-            update: {
-                DeletedAt: new Date(),
-                DeletedBy: req.user?._id,
-                $unset: {
-                    restoredAt: 1,
-                    restoredBy: 1
-                }
-            },
-            options: {
-                new: false
-            }
-        })
-        if (!Exam) {
+
+
+        const [Submissions, Exam] = await Promise.all(
+            [
+                this.SubmissionModel.updateMany({
+                    filter: {
+                        Exam: Types.ObjectId.createFromHexString(ExamID!)
+                    },
+                    update: {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: {
+                            restoredAt: 1,
+                            restoredBy: 1
+                        }
+                    },
+                }),
+
+                await this.ExamModel.findOneAndupdate({
+                    filter: { _id: ExamID, DeletedAt: { $exists: false } },
+                    update: {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: {
+                            restoredAt: 1,
+                            restoredBy: 1
+                        }
+                    },
+                    options: {
+                        new: false
+                    }
+                }),
+
+                this.QuestionModel.updateMany({
+                    filter: {
+                        ExamID: Types.ObjectId.createFromHexString(ExamID!)
+                    },
+                    update: {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: {
+                            restoredAt: 1,
+                            restoredBy: 1
+                        }
+                    },
+                }),
+            ]
+        )
+        if (!Exam || !Submissions) {
             throw new BadRequestException("failed to soft delet Exam")
         }
         return SuccesResponse({ res })
@@ -197,23 +362,79 @@ class ExamService {
 
 
     restoreExame = async (req: Request, res: Response, next: NextFunction) => {
-        const { ExamID } = req.params
-        const Exam = await this.ExamModel.findOneAndupdate({
-            filter: { _id: ExamID, DeletedAt: { $exists: true } },
-            update: {
-                restoredAt: new Date(),
-                restoredBy: req.user?._id,
-                $unset: {
-                    DeletedAt: 1,
-                    DeletedBy: 1
-                }
-            },
-            options: {
-                new: false
-            }
-        })
-        if (!Exam) {
-            throw new BadRequestException("failed to soft delet Exam")
+        const { ExamID, SectionID, CourseId } = req.params
+        const [Section, Course] = await Promise.all([
+
+            this.SectionModel.findOne({
+                filter: {
+                    _id: Types.ObjectId.createFromHexString(SectionID!),
+                    DeletedAt: { $exists: false }
+
+                },
+            }),
+            this.CourseModel.findOne({
+                filter: {
+                    _id: Types.ObjectId.createFromHexString(CourseId!),
+                    DeletedAt: { $exists: false }
+                },
+            }),
+
+        ])
+        if (!Section || !Course) {
+            throw new ConflictException("Cant Restore this Exam as the its Section or Course are Deleted")
+        }
+
+
+
+        const [Submissions, Exam] = await Promise.all(
+            [
+                this.SubmissionModel.updateMany({
+                    filter: {
+                        Exam: Types.ObjectId.createFromHexString(ExamID!)
+                    },
+                    update: {
+                        restoredAt: new Date(),
+                        restoredBy: req.user?._id,
+                        $unset: {
+                            DeletedAt: 1,
+                            DeletedBy: 1
+                        }
+                    },
+                }),
+
+                await this.ExamModel.findOneAndupdate({
+                    filter: { _id: ExamID, DeletedAt: { $exists: true } },
+                    update: {
+                        restoredAt: new Date(),
+                        restoredBy: req.user?._id,
+                        $unset: {
+                            DeletedAt: 1,
+                            DeletedBy: 1
+                        }
+                    },
+                    options: {
+                        new: false
+                    }
+                }),
+
+                this.QuestionModel.updateMany({
+                    filter: {
+                        ExamID: Types.ObjectId.createFromHexString(ExamID!)
+                    },
+                    update: {
+                        restoredAt: new Date(),
+                        restoredBy: req.user?._id,
+                        $unset: {
+                            DeletedAt: 1,
+                            DeletedBy: 1
+                        }
+                    },
+                }),
+            ]
+        )
+
+        if (!Exam || !Submissions) {
+            throw new BadRequestException("failed to restore Exam")
         }
         return SuccesResponse({ res })
     }
@@ -235,9 +456,16 @@ class ExamService {
 
         const [Courses, Submitted] = await Promise.all([
 
-            this.CourseModel.find({
-                filter: { students: { $in: [Student._id] } },
-                select: "_id"
+            this.EnrollmentModel.find({
+                filter: {
+                    UserId: Student.id
+                },
+                options: {
+                    populate: [{
+                        path: "courseId",
+                        select: "name description image subject"
+                    }]
+                },
             }),
 
             this.SubmissionModel.find({
@@ -247,7 +475,8 @@ class ExamService {
                 select: "_id grade",
                 options: {
                     populate: [{
-                        path: 'Exam',  
+                        path: 'Exam',
+                        select: "name"
                     }]
                 }
             })
@@ -257,14 +486,16 @@ class ExamService {
 
         }
 
-        const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade)
+        console.log(Submitted)
 
-        let avergareGrade: number = 0;
+        // const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade)
 
-        for (let i = 0; i < Grades.length; i++) {
-            avergareGrade = avergareGrade + Grades[i]!
-        }
-        const averagePercentage = Math.round((avergareGrade / Grades.length) * 100);
+        // // let avergareGrade: number = 0;
+
+        // // for (let i = 0; i < Grades.length; i++) {
+        // //     avergareGrade = avergareGrade + Grades[i]!
+        // // }
+        // // const averagePercentage = Math.round((avergareGrade / Grades.length) * 100);
 
         const CourseId = Courses.map(Course => Course._id)
 
@@ -275,20 +506,24 @@ class ExamService {
             }
         })
 
+        const TotalExams = Exams.length
+
+        const SubmittedExams = Submitted.map(submit => {
+            const data = submit.Exam as ExamHydratedDocument
+            return data.name
+        })
+
         return SuccesResponse({
             res, data: {
                 Student,
-                TotalExams: Exams.length,
+                TotalExams,
                 TotalCourses: Courses.length,
                 TotalSubmitedExams: Submitted.length,
-                averagePercentage,
-                SubmittedExams:Submitted.map(submit=>{
-                    submit.Exam
-                })
+                SubmittedExams,
             }
         })
     }
- 
+
 }
 
 

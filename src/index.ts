@@ -8,6 +8,11 @@ import { DBconnection } from "./modules/Utilis/DBconnection"
 import { GlobalError } from "./modules/Utilis/response/ErrorResponse"
 import CourseRouter from "./modules/CourseModule/CourseRouter"
 import { SwaggerDocs } from "./Swagger"
+import ExamService from "./modules/ExamModule/Exam.Service"
+import { validation } from "./modules/middlwares/validation.middleware"
+import { StudentStatusVlaidation } from "./modules/ExamModule/Exam.validation"
+import CodeService from "./modules/CodeModule/CodeService"
+import CodeRouter from "./modules/CodeModule/CodeRouter"
 config({ path: resolve("./config/.env.dev") })
 
 const bootsrap = async () => {
@@ -19,9 +24,11 @@ const bootsrap = async () => {
 
 
 
-    app.use("/Auth", AuthRouter)
+    app.use("/Auth",AuthRouter)
     app.use("/User",UserRouter)
-    app.use("/course", CourseRouter)
+    app.use("/course",CourseRouter)
+    app.use("/Code",CodeRouter)
+    app.get("/ParentSupervision",validation(StudentStatusVlaidation),ExamService.StudentExamStatus)
 
 
 

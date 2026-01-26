@@ -13,7 +13,8 @@ export interface IMultter extends Express.Multer.File {
 export enum folderEnum {
     User = "User",
     Courses = "Courses",
-    lectures = "lectures"
+    lectures = "lectures",
+    Exam = "Exam"
 }
 
 export const fileValidation = {

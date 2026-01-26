@@ -2,11 +2,11 @@ import { model, Schema, Types } from "mongoose";
 import type { HydratedDocument } from "mongoose"
 
 export interface ILecture {
-    title: string;
-    course: Types.ObjectId; // ref to Course
+    LectureName: string;
+    CourseId: Types.ObjectId; // ref to Course
     videoUrl?: string;
-    duration?: number; // in seconds or minutes
-    description?: string;
+    SectionId:Types.ObjectId,
+   
     
     RestoredAt: Date,
     RestoredBy: Types.ObjectId;
@@ -19,14 +19,14 @@ export interface ILecture {
 }
 
 export const LectureSchema = new Schema<ILecture>({
-    title: { type: String, maxLength: 255, required: true },
+    LectureName: { type: String, maxLength: 255, required: true },
 
     videoUrl: { type: String, required: true, unique: true },
 
-    description: { type: String, maxLength: 5000 },
-    
 
-    duration: Number,
+    CourseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    SectionId: { type: Schema.Types.ObjectId, ref: "Section", required: true },
+    
 
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     createdAt:Date,

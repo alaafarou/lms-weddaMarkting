@@ -8,18 +8,40 @@ import { BadRequestException, NotFoundException } from "../Utilis/response/Error
 import { UserResponse } from "../AuthModule/AuthEntites";
 import { createRevokeToken, logoutEnum } from "../Utilis/Security/security";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
+import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
+import { EnrollmentModel } from "../../Schema/Enrollment";
+import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
+import { SubmissionModel } from "../../Schema/Submition";
+import { Types } from "mongoose";
 
 class UserService {
 
     private UserModel: UserRepositry = new UserRepositry(UserModel)
+    private EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
+    private SubmissionModel: SubmissionReposatory = new SubmissionReposatory(SubmissionModel)
 
 
-    constructor() {}
+    constructor() { }
 
 
     profile = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         return SuccesResponse<UserResponse>({ res, data: { user: req.user! } })
     }
+
+    MyCourses = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const Courses = await this.EnrollmentModel.find({
+            filter: {
+                UserId: req.user?._id,
+            },
+            options: {
+                populate: {
+                    path: "courseId",
+                }
+            }
+        })
+        return SuccesResponse({ res, data: Courses })
+    }
+
 
     updateprofileimage = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const file = req.file as IMultter
@@ -107,63 +129,89 @@ class UserService {
 
     freezeUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
-        const CurrentAdminId = req.user!;
-     
-        if (!UserId || (UserId == CurrentAdminId.toString())) {
+        if (!UserId) {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
-                    _id: CurrentAdminId._id,
+                    _id: req.user?._id,
                     DeletedAt: { $exists: false }
                 },
                 update:
                 {
                     DeletedAt: new Date(),
-                    DeletedBy: CurrentAdminId._id,
+                    DeletedBy: req.user?._id,
                     $unset: { RestoredAt: 1, RestoredBy: 1 }
                 }
-
-            });
+            })
             if (!User) {
                 throw new BadRequestException("sorry Errore while Deleting admin acount");
             }
             return SuccesResponse({ res, data: "Admin deleted self successfully" });
-        }
-        const targetUser = await this.UserModel.findOneAndupdate({
-            filter: {
-                _id: UserId,
-                DeletedAt: { $exists: false },
-            },
-            update: {
-                DeletedAt: new Date(),
-                DeletedBy: CurrentAdminId._id,
-                $unset: { RestoredAt: 1, RestoredBy: 1 }
-            },
-            options: {
-                new: false
+        } else {
+            const targetUser = await this.UserModel.findOneAndupdate({
+                filter: {
+                    _id: UserId,
+                    DeletedAt: { $exists: false }
+                },
+                update:
+                {
+                    DeletedAt: new Date(),
+                    DeletedBy: req.user?._id,
+                    $unset: { RestoredAt: 1, RestoredBy: 1 }
+                }
+            })
+
+            if (!targetUser) {
+                throw new NotFoundException("User not found or already deleted");
             }
-        })
-        if (!targetUser) {
-            throw new NotFoundException("User not found or already deleted");
+
+            if (targetUser.role === roleEnum.admin) {
+                throw new BadRequestException("sorry cannot delete admin account");
+            }
+
+            const [Enroll, Submit] = await Promise.all([
+
+                await this.EnrollmentModel.updateMany({
+                    filter: {
+                        UserId: Types.ObjectId.createFromHexString(UserId!),
+                        DeletedAt: { $exists: false }
+                    },
+                    update:
+                    {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    }
+                }),
+
+                await this.SubmissionModel.updateMany({
+                    filter: {
+                        Student: Types.ObjectId.createFromHexString(UserId!)
+                    },
+                    update: {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    }
+                })
+            ])
+
+            return SuccesResponse({ res, data: "User Freezed successfully" });
         }
-        if (targetUser.role === roleEnum.admin) {
-            throw new BadRequestException("sorry cannot delete admin account");
-        }
-        return SuccesResponse({ res, data: "User deleted successfully" });
     };
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
         const CurrentAdminId = req.user!;
-        if (!UserId || (UserId == CurrentAdminId.toString())) {
+        if (!UserId) {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
-                    _id: CurrentAdminId._id,
+                    _id: req.user?._id,
                     DeletedAt: { $exists: true }
                 },
                 update:
                 {
                     RestoredAt: new Date(),
-                    RestoredBy: CurrentAdminId._id,
+                    RestoredBy: req.user?._id,
                     $unset: { DeletedAt: 1, DeletedBy: 1 }
                 }
 
@@ -172,38 +220,65 @@ class UserService {
                 throw new BadRequestException("sorry Errore while restoring admin acount");
             }
             return SuccesResponse({ res, data: "Admin account restored successfully" });
-        }
-        const targetUser = await this.UserModel.findOneAndupdate({
-            filter: {
-                _id: UserId,
-                DeletedAt: { $exists: true }
-            },
-            update:
-            {
-                RestoredAt: new Date(),
-                RestoredBy: CurrentAdminId._id,
-                $unset: { DeletedAt: 1, DeletedBy: 1 }
-            },
-            options: {
-                new: false
+        } else {
+            const targetUser = await this.UserModel.findOneAndupdate({
+                filter: {
+                    _id: UserId,
+                    DeletedAt: { $exists: true }
+                },
+                update:
+                {
+                    RestoredAt: new Date(),
+                    RestoredBy: CurrentAdminId._id,
+                    $unset: { DeletedAt: 1, DeletedBy: 1 }
+                },
+                options: {
+                    new: false
+                }
+            })
+            if (!targetUser) {
+                throw new NotFoundException("User not found or already restored");
             }
-        })
-        if (!targetUser) {
-            throw new NotFoundException("User not found or already restored");
+            if (targetUser.role === roleEnum.admin) {
+                throw new BadRequestException("sorry cannot restore admin account");
+            }
+            const [Enroll, Submit] = await Promise.all([
+
+                await this.EnrollmentModel.updateMany({
+                    filter: {
+                        UserId: Types.ObjectId.createFromHexString(UserId!),
+                        DeletedAt: { $exists: false }
+                    },
+                    update:
+                    {
+                        RestoredAt: new Date(),
+                        RestoredBy: CurrentAdminId._id,
+                        $unset: { DeletedAt: 1, DeletedBy: 1 }
+                    }
+                }),
+
+                await this.SubmissionModel.updateMany({
+                    filter: {
+                        Student: Types.ObjectId.createFromHexString(UserId!)
+                    },
+                    update: {
+                        RestoredAt: new Date(),
+                        RestoredBy: CurrentAdminId._id,
+                        $unset: { DeletedAt: 1, DeletedBy: 1 }
+                    }
+                })
+            ])
+
+            return SuccesResponse({ res, data: "User restored successfully" });
         }
-        if (targetUser.role === roleEnum.admin) {
-            throw new BadRequestException("sorry cannot restore admin account");
-        }
-        return SuccesResponse({ res, data: "User restored successfully" });
     };
 
     DeleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
-        const CurrentAdminId = req.user!;
-        if (!UserId || (UserId == CurrentAdminId.toString())) {
+        if (!UserId) {
             const User = await this.UserModel.findOneAndDelete({
                 filter: {
-                    _id: CurrentAdminId._id,
+                    _id: req.user?._id,
                     DeletedAt: { $exists: true }
                 },
             });
@@ -211,27 +286,44 @@ class UserService {
                 throw new BadRequestException("sorry Errore while Deleting admin acount");
             }
             return SuccesResponse({ res, data: "Admin deleted self successfully" });
-        }
-        const targetUser = await this.UserModel.findOneAndDelete({
-            filter: {
-                _id: UserId,
-                DeletedAt: { $exists: true },
-                role: roleEnum.user
-            },
-            options: {
-                new: false
-            }
-        })
-        if (!targetUser) {
-            throw new NotFoundException("sorry this user cant be found as it may be already deleted");
-        }
-        if (targetUser.role !== roleEnum.user) {
-            throw new NotFoundException("sorry we cant delet admin User");
-        }
-        return SuccesResponse({ res, data: "User restored successfully" });
-    };
+        } else {
 
-  
+            const targetUser = await this.UserModel.findOneAndDelete({
+                filter: {
+                    _id: UserId,
+                    DeletedAt: { $exists: true },
+                    role: roleEnum.user
+                },
+                options: {
+                    new: false
+                }
+            })
+            if (!targetUser) {
+                throw new NotFoundException("sorry this user cant be found as it may be already deleted");
+            }
+            if (targetUser.role !== roleEnum.user) {
+                throw new NotFoundException("sorry we cant delet admin User");
+            }
+
+            await Promise.all([
+
+                await this.EnrollmentModel.deleteMany({
+                    filter: {
+                        UserId: Types.ObjectId.createFromHexString(UserId!),
+                        DeletedAt: { $exists: true }
+                    },
+                }),
+
+                await this.SubmissionModel.deleteMany({
+                    filter: {
+                        Student: Types.ObjectId.createFromHexString(UserId!),
+                        DeletedAt: { $exists: true }
+                    },
+                })
+            ])
+            return SuccesResponse({ res, data: "User restored successfully" });
+        }
+    };
 
 }
 

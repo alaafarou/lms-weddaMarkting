@@ -1,10 +1,4 @@
 export enum GradeLevelEnum {
-  FIRST_PRIMARY = 'First Primary',
-  SECOND_PRIMARY = 'Second Primary',
-  THIRD_PRIMARY = 'Third Primary',
-  FOURTH_PRIMARY = 'Fourth Primary',
-  FIFTH_PRIMARY = 'Fifth Primary',
-  SIXTH_PRIMARY = 'Sixth Primary',
   FIRST_PREPARATORY = 'First Preparatory',
   SECOND_PREPARATORY = 'Second Preparatory',
   THIRD_PREPARATORY = 'Third Preparatory',
@@ -32,7 +26,6 @@ export enum SubjectsEnum {
   INTEGRAL_CALCULUS = 'Integral Calculus',
   LINEAR_ALGEBRA = 'Linear Algebra',
   COMPLEX_NUMBERS = 'Complex Numbers',
-  computer= "computer"
 }
 
 

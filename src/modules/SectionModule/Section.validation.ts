@@ -19,3 +19,25 @@ export const CreateSectionValidation = {
     })
     
 }
+
+
+export const SectionParamsValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+        SectionID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid SectionID"),
+    })
+}
+
+
+export const getAllSectionsParamsValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    })
+}
+

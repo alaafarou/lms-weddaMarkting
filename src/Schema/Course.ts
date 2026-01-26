@@ -2,7 +2,10 @@ import { HydratedDocument, model, Schema, Types } from "mongoose";
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from "../modules/Utilis/Enums/courses";
 import { IOtp } from "./OtpModel";
 
-
+export  enum StatusEnum{
+    Active="Active",
+    InActive="InActive"
+}
 export interface ICourse {
 
     name: string,
@@ -13,22 +16,23 @@ export interface ICourse {
 
     GradeLevel: GradeLevelEnum,
     Semester: SemesterEnum,
-    subject:SubjectsEnum
-
+    subject: SubjectsEnum
+    
     image?: string,
 
     CreatedBy: Types.ObjectId,
- 
-    UpdatedBy:Types.ObjectId,
 
-    DeletedAt:Date,
-    DeletedBy:Types.ObjectId
+    UpdatedBy: Types.ObjectId,
 
-    RestoredAt:Date,
-    RestoredBy:Types.ObjectId,
+    DeletedAt: Date,
+    Status:StatusEnum,
+    DeletedBy: Types.ObjectId
 
-    Otps:IOtp[]
-    students:Types.ObjectId[]
+    RestoredAt: Date,
+    RestoredBy: Types.ObjectId,
+    Code:string[]
+
+    Otps: IOtp[]
 
 }
 
@@ -63,6 +67,7 @@ const CourseSchema = new Schema<ICourse>({
         enum: GradeLevelEnum,
         required: true
     },
+    Code:[String],
 
     Semester: {
         type: String,
@@ -76,24 +81,37 @@ const CourseSchema = new Schema<ICourse>({
         required: true
     },
 
-    students:{type:[Schema.Types.ObjectId],ref:"User"},
+    DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    DeletedAt: Date,
+    Status:{
+        type: String,
+        enum: StatusEnum,
+        required: true,
+        default:StatusEnum.Active
+    },
+   
 
-    DeletedBy:{ type: Schema.Types.ObjectId, ref: "User" },
-    DeletedAt:Date,
+    RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
+    RestoredAt: Date,
 
-    RestoredBy:{ type: Schema.Types.ObjectId, ref: "User" },
-    RestoredAt:Date,
 
-     
 }, { timestamps: true })
 
 
 CourseSchema.virtual("Otps", {
-  ref: "Otp",
-  localField: "_id",
-  foreignField: "course"
+    ref: "Otp",
+    localField: "_id",
+    foreignField: "course"
+});
+
+CourseSchema.virtual('sections', {
+    ref: "Section",
+    localField: "_id",
+    foreignField: "courseId"
 });
 
 
 export type CourseHydareatedDocument = HydratedDocument<ICourse>
-export const CourseModel  = model<ICourse>("Course",CourseSchema)
+
+
+export const CourseModel = model<ICourse>("Course", CourseSchema)

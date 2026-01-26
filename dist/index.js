@@ -45,6 +45,10 @@ const DBconnection_1 = require("./modules/Utilis/DBconnection");
 const ErrorResponse_1 = require("./modules/Utilis/response/ErrorResponse");
 const CourseRouter_1 = __importDefault(require("./modules/CourseModule/CourseRouter"));
 const Swagger_1 = require("./Swagger");
+const Exam_Service_1 = __importDefault(require("./modules/ExamModule/Exam.Service"));
+const validation_middleware_1 = require("./modules/middlwares/validation.middleware");
+const Exam_validation_1 = require("./modules/ExamModule/Exam.validation");
+const CodeRouter_1 = __importDefault(require("./modules/CodeModule/CodeRouter"));
 (0, dotenv_1.config)({ path: (0, path_1.resolve)("./config/.env.dev") });
 const bootsrap = async () => {
     const app = (0, express_1.default)();
@@ -54,6 +58,8 @@ const bootsrap = async () => {
     app.use("/Auth", AuthRouter_1.default);
     app.use("/User", UserRouter_1.default);
     app.use("/course", CourseRouter_1.default);
+    app.use("/Code", CodeRouter_1.default);
+    app.get("/ParentSupervision", (0, validation_middleware_1.validation)(Exam_validation_1.StudentStatusVlaidation), Exam_Service_1.default.StudentExamStatus);
     app.use(ErrorResponse_1.GlobalError);
     app.listen(process.env.PORT, () => {
         console.log(`the application is running on port ${process.env.PORT}`);

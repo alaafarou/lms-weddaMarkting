@@ -27,19 +27,13 @@ import { CreateCourseValidation, GetAllCoursesValidation, UpdateCourseValidation
  *         GradeLevel:
  *           type: string
  *           enum:
- *             - First Primary
- *             - Second Primary
- *             - Third Primary
- *             - Fourth Primary
- *             - Fifth Primary
- *             - Sixth Primary
  *             - First Preparatory
  *             - Second Preparatory
  *             - Third Preparatory
  *             - First Secondary
  *             - Second Secondary
  *             - Third Secondary
- *           example: "First Primary"
+ *           example: "Third Secondary"
  *         Semester:
  *           type: string
  *           enum: [First Semester, Second Semester]
@@ -62,14 +56,10 @@ import { CreateCourseValidation, GetAllCoursesValidation, UpdateCourseValidation
  *             - computer
  *           example: "Algebra"
  *         image:
- *           type: object
- *           properties:
- *             mimetype: { type: string, example: "image/jpeg" }
- *             size: { type: number, example: 5242880 }
- *             path: { type: string, example: "/uploads/courses/abc123.jpg" }
+ *           type: string
+ *           example: "./upload/Courses/6977601bb0d5d79830dee66c/1769431511181-1-images.jpeg"
  */
 export type CreateCourseBody=z.infer<typeof CreateCourseValidation.body>;
-
 
 /**
  * @openapi
@@ -130,11 +120,8 @@ export type CreateCourseBody=z.infer<typeof CreateCourseValidation.body>;
  *             - computer
  *           example: "Algebra"
  *         image:
- *           type: object
- *           properties:
- *             mimetype: { type: string, example: "image/jpeg" }
- *             size: { type: number, example: 5242880 }
- *             path: { type: string, example: "/uploads/courses/abc123.jpg" }
+ *           type: string
+ *           example: "./upload/Courses/6977601bb0d5d79830dee66c/1769431511181-1-images.jpeg"
  */
 export type CourseUpdateBody=z.infer<typeof UpdateCourseValidation.body>;
 
@@ -200,4 +187,4 @@ export type CourseUpdateBody=z.infer<typeof UpdateCourseValidation.body>;
 export type GetAllCoursesBody=z.infer<typeof GetAllCoursesValidation.body>;
  
 
-
+export type gets=z.infer<typeof GetAllCoursesValidation.query>;

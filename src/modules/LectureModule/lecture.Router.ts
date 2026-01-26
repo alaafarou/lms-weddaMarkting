@@ -2,35 +2,53 @@ import { Router } from "express"
 import { Authorization } from "../middlwares/Authentication.middleware"
 import { roleEnum } from "../../Schema/UserModel"
 import lectureService from "./lecture.Service"
-import { createLectureValidation } from "./Lecture.validation"
+import { ActivateCodeValidation, createLectureValidation, LectureParamsValidation, UpdatelectureValidation } from "./Lecture.validation"
 import { validation } from "../middlwares/validation.middleware"
 
 
 const lectureRouter = Router({ mergeParams: true })
 
 
-lectureRouter.get("/",
+lectureRouter.post("/",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(createLectureValidation),
-    lectureService.createleacture)
-    
+    lectureService.createlecture)
 
-lectureRouter.get("/",
+
+lectureRouter.patch("/:LectureId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(createLectureValidation),
-    lectureService.createleacture)
+    validation(UpdatelectureValidation),
+    lectureService.Updatelecture)
 
 
-lectureRouter.get("/",
+lectureRouter.post("/Activate/:LectureId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(createLectureValidation),
-    lectureService.createleacture)
+    validation(ActivateCodeValidation),
+    lectureService.ActivateLecture)
 
 
-lectureRouter.get("/",
+lectureRouter.get("/:LectureId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(createLectureValidation),
-    lectureService.createleacture)
+    validation(LectureParamsValidation),
+    lectureService.GetLecture)
+
+
+lectureRouter.delete("/freeze/:LectureId",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(LectureParamsValidation),
+    lectureService.FreezeLecture)
+
+
+lectureRouter.delete("/:LectureId",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(LectureParamsValidation),
+    lectureService.DeleteLecture)
+
+
+lectureRouter.patch("/Restore/:LectureId",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(LectureParamsValidation),
+    lectureService.RestoreLecture)
 
 
 export default lectureRouter

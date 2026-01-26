@@ -21,8 +21,11 @@ const options = {
         './src/modules/AuthModule/Auth.Dto.ts',
         './src/modules/CourseModule/Course.Dto.ts',
         './src/modules/CourseModule/CourseRouter.ts',
+        './src/modules/SectionModule/Section.Router.ts',
+        './src/modules/ExamModule/Exam.Router.ts',
         './dist/modules/AuthModule/AuthRouter.js',
-        './dist/modules/AuthModule/Auth.Dto.js'
+        './dist/modules/AuthModule/Auth.Dto.js',
+        './src/modules/CodeModule/CodeRouter.ts',
     ],
 };
 exports.specs = (0, swagger_jsdoc_1.default)(options);

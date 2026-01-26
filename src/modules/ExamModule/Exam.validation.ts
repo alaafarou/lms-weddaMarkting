@@ -7,46 +7,47 @@ export const CreateExamValidation = {
         SectionID: z.string().refine((id) => {
             return Types.ObjectId.isValid(id);
         }, "Invalid SectionID"),
-        CourseId: z.string().refine((id) => {
-            return Types.ObjectId.isValid(id);
-        }, "Invalid SectionID"),
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
     }),
     body: z.strictObject({
         name: z.string()
             .min(5, "name must not be less than 5")
             .max(100, "name must not exceed 100"),
 
-        questions: z.array(  // ✅ Fixed: array of questions
+        questions: z.array(  
             z.strictObject({
                 question: z.string()
                     .min(5, " question  must not be less than 5")
                     .max(300, " question must not exceed 300 "),
 
                 type: z.enum(Object.values(questionEnum)),
-                Answers: z.array(z.string()).optional(),  // A least 2 options
+                Answers: z.array(z.string()).optional(),
+                Score: z.coerce.number().min(0, 'Score must be positive').optional(),
                 correctAnswer: z.string().min(1, "Correct answer required")
             })
-        ).min(1, "At least one question required"),  // ✅ At least 1 question
+        ).min(1, "At least one question required"),  
     }).superRefine((data, ctx) => {
         data.questions.forEach(Question => {
-            if (
-                Question.type === questionEnum.multiple_choice
-                &&
-                Question.Answers
-                &&
-                Question.Answers.length < 5) {
+            // if (
+            //     Question.type === questionEnum.multiple_choice
+            //             &&
+            //     Question.Answers
+            //             &&
+            //     Question.Answers.length < 5) {
 
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["body"],
-                    message: ` Multiple choice questions must have at least 5 answer options (found ${Question.Answers.length})`,
-                })
-            }
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         path: ["body"],
+            //         message: ` Multiple choice questions must have at least 5 answer options (found ${Question.Answers.length})`,
+            //     })
+            // }
             if (
                 Question.type === questionEnum.multiple_choice
-                &&
+                     &&
                 Question.Answers
-                &&
+                     &&
                 !Question.Answers.includes(Question.correctAnswer)) {
                 ctx.addIssue({
                     code: "custom",
@@ -57,7 +58,7 @@ export const CreateExamValidation = {
 
             if (
                 Question.type === questionEnum.true_false
-                &&
+                               &&
                 !["false", "true"].includes(Question.correctAnswer)
             ) {
                 ctx.addIssue({
@@ -71,21 +72,30 @@ export const CreateExamValidation = {
 };
 
 
+
+
+
+
+
+
 export const ExamparamValidation = {
-    params: z.strictObject({
+     params: z.strictObject({
         ExamID: z.string().refine((id) => {
             return Types.ObjectId.isValid(id);
         }, "Invalid SectionID"),
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+        SectionID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid SectionID"),
+    })
+}  
+
+
+export const StudentStatusVlaidation = {
+    body: z.strictObject({
+        ParentsPhone: z.string(),
+        phone: z.string()
     })
 }
-
-
-
-// export const ExamparamValidation = {
-//     params: z.strictObject({
-//         ExamID: z.string().refine((id) => {
-//             return Types.ObjectId.isValid(id);
-//         }, "Invalid SectionID"),
-//     })
-// }    
-

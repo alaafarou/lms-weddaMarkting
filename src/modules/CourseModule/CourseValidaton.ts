@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import { z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
+import { StatusEnum } from '../../Schema/Course';
 
 export const CreateCourseValidation = {
     body: z.strictObject({
@@ -16,6 +17,9 @@ export const CreateCourseValidation = {
         subject: z.enum(Object.values(SubjectsEnum), {
             message: 'Invalid Subject. Please select a valid school subject'
         }),
+        Status: z.enum(Object.values(StatusEnum), {
+            message: 'Invalid Status. Please select a valid Status'
+        }).optional(),
         image: z.object({
             mimetype: z.string(),
             size: z.number(),
@@ -75,6 +79,34 @@ export const checkCourseParam = {
 };
 
 
+export const getcourseValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    }),
+};
+
+
+export const getCoursestudentsValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    }),
+    query: z.strictObject({
+        page: z.coerce.number().optional(),
+        size: z.coerce.number().optional(),
+    }).optional(),
+
+    body: z.strictObject({
+        fullname: z.string().optional(),
+        email: z.email("Invalid email format").optional(),
+    }).optional()
+
+};
+
+
 
 export const ActivateCodeValidation = {
     params: z.strictObject({
@@ -89,6 +121,17 @@ export const ActivateCodeValidation = {
     }),
 
 };
+
+
+
+
+export const GenerateCodeValidation = {
+    body: z.strictObject({
+        number: z.number().min(1),
+        name: z.string()
+    }),
+};
+
 
 
 export const GetAllCoursesValidation = {
@@ -113,3 +156,23 @@ export const GetAllCoursesValidation = {
 
     }).optional()
 }
+
+
+
+
+
+export const Grade_Semester_CourseValidation = {
+
+    body: z.strictObject({
+        GradeLevel: z.enum(Object.values(GradeLevelEnum), {
+            message: 'Invalid Grade Level. Please select a valid option'
+        }).optional(),
+        Semester: z.enum(Object.values(SemesterEnum), {
+            message: 'Invalid Semester. Please select either First or Second Semester'
+        }).optional(),
+
+    })
+}
+
+
+

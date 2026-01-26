@@ -1,11 +1,11 @@
-import type { Model, UpdateWriteOpResult, CreateOptions, HydratedDocument, QueryOptions, ProjectionType, RootFilterQuery, MongooseUpdateQueryOptions, UpdateQuery, UpdateWithAggregationPipeline, PopulateOptions } from "mongoose";
+import type { Model, UpdateWriteOpResult, CreateOptions, HydratedDocument, QueryOptions, ProjectionType, RootFilterQuery, MongooseUpdateQueryOptions, UpdateQuery, UpdateWithAggregationPipeline, PopulateOptions, QueryWithHelpers } from "mongoose";
 
 
 export abstract class DatabaseRepositry<Tdocument> {
 
     constructor(protected readonly model: Model<Tdocument>) { }
 
-    
+
 
     async create({
         data,
@@ -102,6 +102,21 @@ export abstract class DatabaseRepositry<Tdocument> {
         )
     }
 
+    async updateMany({
+        filter,
+        update,
+        options = { }
+    }: {
+        filter: RootFilterQuery<Tdocument>,
+        update: UpdateQuery<Tdocument> | UpdateWithAggregationPipeline,
+        options?: MongooseUpdateQueryOptions<Tdocument> | null
+    }): Promise<UpdateWriteOpResult> {
+        return await this.model.updateMany(filter,
+            { ...update, $inc: { __v: 1 } },  // Keep your version increment
+            options
+        );
+    }
+
     async findOneAndupdate({
         filter,
         update,
@@ -126,6 +141,17 @@ export abstract class DatabaseRepositry<Tdocument> {
     }): Promise<HydratedDocument<Tdocument> | null> {
         return await this.model.findOneAndDelete(filter, options)
     }
+
+
+    async deleteMany({
+        filter,
+    }: {
+        filter: RootFilterQuery<Tdocument>
+    }) {
+        return await this.model.deleteMany(filter)
+    }
+
+
 
     async paginate({
         filter = {},
@@ -154,7 +180,7 @@ export abstract class DatabaseRepositry<Tdocument> {
             pages = Math.ceil(countdoc / options.limit)
         }
 
-        console.log(filter)
+        console.log(filter, page, size)
 
         const result = await this.find({ filter, options })
 
