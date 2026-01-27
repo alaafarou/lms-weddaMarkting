@@ -7,6 +7,8 @@ export interface ILecture {
     videoUrl?: string;
     SectionId:Types.ObjectId,
    
+    viewedBy?: Types.ObjectId[];  // Add this
+
     
     RestoredAt: Date,
     RestoredBy: Types.ObjectId;
@@ -22,9 +24,11 @@ export const LectureSchema = new Schema<ILecture>({
     LectureName: { type: String, maxLength: 255, required: true },
 
     videoUrl: { type: String, required: true, unique: true },
+    viewedBy: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
 
 
-    CourseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+
+    CourseId:  { type: Schema.Types.ObjectId, ref: "Course", required: true },
     SectionId: { type: Schema.Types.ObjectId, ref: "Section", required: true },
     
 
@@ -39,6 +43,7 @@ export const LectureSchema = new Schema<ILecture>({
     DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
 
 }, { timestamps: true });
+LectureSchema.index({ _id: 1, 'viewedBy': 1 });
 
 export type LectureHydratedDocuments = HydratedDocument<ILecture>
 export const LectureModel = model<ILecture>("Lecture",LectureSchema)

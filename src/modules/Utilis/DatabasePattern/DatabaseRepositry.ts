@@ -42,6 +42,9 @@ export abstract class DatabaseRepositry<Tdocument> {
         if (options?.limit) {
             doc.limit(options.limit)
         }
+        if (options?.lean) {
+            doc.lean()
+        }
 
         return await doc.exec()
     }

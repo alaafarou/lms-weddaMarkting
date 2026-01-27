@@ -6,13 +6,20 @@ import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { Types } from "mongoose"
 import { CourseModel } from "../../Schema/Course"
 import { SectionModel } from "../../Schema/Section"
+import { promise } from "zod"
+import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
+import { ExamModule } from "../../Schema/Exam"
+import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
+import { LectureModel } from "../../Schema/lecture"
 
 
 class SectionService {
 
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
-
+    private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
+    private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
+    
     constructor() { }
 
 
@@ -75,6 +82,7 @@ class SectionService {
             }
 
         })
+
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
@@ -151,12 +159,24 @@ class SectionService {
                 courseId: CourseId,
                 DeletedAt: { $exists: false }
             }
-
         })
         if (!section) {
             throw new BadRequestException("sorry failed to Deles")
         }
-        return SuccesResponse({ res ,data:section })
+
+        const [lectures, exams] = await Promise.all([
+            await this.LectureModel.find({
+                filter:{
+                    SectionId:section._id,
+                },              
+            }),
+             await this.ExamModel.find({
+                filter:{
+                    SectionID:section._id,
+                },
+            })
+        ])
+        return SuccesResponse({ res ,data:{section, lectures, exams} })
     }
 
 

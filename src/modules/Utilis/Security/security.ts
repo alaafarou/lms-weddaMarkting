@@ -178,9 +178,7 @@ export const Decoded = async ({ Authorization,
 
 export const createRevokeToken = async (Req: Request) => {
 
-    let Tokenmodel = TokenModel
-
-    const tokenRepositry = new TokenRepositry(Tokenmodel)
+    const tokenRepositry = new TokenRepositry(TokenModel)
 
     const [token] = await tokenRepositry.create({
         data: [{

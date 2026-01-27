@@ -8,12 +8,15 @@ import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
 import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo";
 import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code";
+import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory";
+import { CourseModel } from "../../Schema/Course";
 
 class lectureService {
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly CodeModel: CodeRepositry = new CodeRepositry(CodeModel)
-
+    private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
+    
 
     constructor() { }
 
@@ -163,6 +166,13 @@ class lectureService {
             filter: {
                 _id: LectureId,
             },
+            options:{
+                populate:[{
+                     path:'viewedBy',
+                     select:'fullname phone parentsPhone'
+                }],
+                lean:true      
+            },     
         })
 
         if (!Lecture) {
@@ -173,6 +183,7 @@ class lectureService {
     }
 
 
+
     ActivateLecture = async (req: Request, res: Response, next: NextFunction) => {
         const { LectureId } = req.params
         const { Code } = req.body
@@ -180,7 +191,8 @@ class lectureService {
         const checkenrolled = await this.EnrollmentModel.findOne({
             filter: {
                 LectureId: Types.ObjectId.createFromHexString(LectureId!),
-                UserId: req.user?._id
+                UserId: req.user?._id,
+                courseId:{$exists:false}
             }
         })
 
@@ -251,8 +263,72 @@ class lectureService {
         return SuccesResponse({ res })
     }
 
+    playlecture = async (req: Request, res: Response, next: NextFunction) => {
+       const { LectureId , courseId } = req.params
 
-    ////////////////////////////
-    ///get Lcture by Course
+       const [checkEnrollLecture, checkCourseEnroll] = await Promise.all([
+
+            await this.EnrollmentModel.findOne({
+                filter:{
+                    LectureId: Types.ObjectId.createFromHexString(LectureId!),
+                    UserId:req.user?._id,
+                }
+            }),
+
+            await this.EnrollmentModel.findOne({
+                filter:{
+                    courseId: Types.ObjectId.createFromHexString(courseId!),
+                    UserId:req.user?._id,
+                }
+            }),
+
+       ])
+
+       if(!checkEnrollLecture && !checkCourseEnroll){
+             throw new ConflictException("You are not enrolled in this Lecture or the Course")
+       }
+
+        const Lecture = await this.LectureModel.findOneAndupdate({
+            filter: {
+                _id: LectureId,
+            },
+            update:{
+                $addToSet: { viewedByUsers: req.user?._id }   
+            }
+        })
+
+        if (!Lecture) {
+            throw new NotFoundException("No course found matching criteria");
+        }
+
+        return SuccesResponse({ res, data: Lecture });
+    }
+
+
+     GetLecturebyCourseName = async (req: Request, res: Response, next: NextFunction) => {
+        const { name } = req.body
+
+        const Course = await this.CourseModel.findOne({
+            filter: {
+                name
+            },
+        })
+
+        if(!Course){
+            throw new NotFoundException("No course found matching criteria");
+        }
+
+        const Lecture = await this.LectureModel.find({
+            filter: {
+                CourseId: Course._id,
+            },
+        })
+
+        if (!Lecture) {
+            throw new NotFoundException("No course found matching criteria");
+        }
+
+        return SuccesResponse({ res, data: Lecture });
+    }
 }
 export default new lectureService

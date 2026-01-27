@@ -1,12 +1,12 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { roleEnum, UserModel } from "../../Schema/UserModel";
+import { roleEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { profileimageReponse } from "./UserEntites";
 import { IMultter } from "../Utilis/multer/cloud.multer";
 import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { UserResponse } from "../AuthModule/AuthEntites";
-import { createRevokeToken, logoutEnum } from "../Utilis/Security/security";
+import { createRevokeToken, GenerateCredentials, logoutEnum } from "../Utilis/Security/security";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
@@ -88,20 +88,6 @@ class UserService {
         return SuccesResponse<UserResponse>({ res, data: { user: User } })
     }
 
-    // changerole = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    //     this.ReinitializeModels(req)
-    //     const { UserId } = req.params as unknown as { UserId: Types.ObjectId }
-    //     const { role } = req.body
-    //     const User = await this.UserModel.findOneAndupdate({
-    //         filter: { _id: UserId, role: roleEnum.user },
-    //         update: { role }
-    //     })
-    //     if (!User) {
-    //         throw new NotFoundException("failed to update the User role ")
-    //     }
-    //     return SuccesResponse<UserResponse>({ res, data: { user: User } })
-    // }
-
     logout = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { flag } = req.body
         let statuscode = 200
@@ -127,77 +113,7 @@ class UserService {
         return SuccesResponse({ res, statuscode })
     }
 
-    freezeUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { UserId } = req.params;
-        if (!UserId) {
-            const User = await this.UserModel.findOneAndupdate({
-                filter: {
-                    _id: req.user?._id,
-                    DeletedAt: { $exists: false }
-                },
-                update:
-                {
-                    DeletedAt: new Date(),
-                    DeletedBy: req.user?._id,
-                    $unset: { RestoredAt: 1, RestoredBy: 1 }
-                }
-            })
-            if (!User) {
-                throw new BadRequestException("sorry Errore while Deleting admin acount");
-            }
-            return SuccesResponse({ res, data: "Admin deleted self successfully" });
-        } else {
-            const targetUser = await this.UserModel.findOneAndupdate({
-                filter: {
-                    _id: UserId,
-                    DeletedAt: { $exists: false }
-                },
-                update:
-                {
-                    DeletedAt: new Date(),
-                    DeletedBy: req.user?._id,
-                    $unset: { RestoredAt: 1, RestoredBy: 1 }
-                }
-            })
-
-            if (!targetUser) {
-                throw new NotFoundException("User not found or already deleted");
-            }
-
-            if (targetUser.role === roleEnum.admin) {
-                throw new BadRequestException("sorry cannot delete admin account");
-            }
-
-            const [Enroll, Submit] = await Promise.all([
-
-                await this.EnrollmentModel.updateMany({
-                    filter: {
-                        UserId: Types.ObjectId.createFromHexString(UserId!),
-                        DeletedAt: { $exists: false }
-                    },
-                    update:
-                    {
-                        DeletedAt: new Date(),
-                        DeletedBy: req.user?._id,
-                        $unset: { RestoredAt: 1, RestoredBy: 1 }
-                    }
-                }),
-
-                await this.SubmissionModel.updateMany({
-                    filter: {
-                        Student: Types.ObjectId.createFromHexString(UserId!)
-                    },
-                    update: {
-                        DeletedAt: new Date(),
-                        DeletedBy: req.user?._id,
-                        $unset: { RestoredAt: 1, RestoredBy: 1 }
-                    }
-                })
-            ])
-
-            return SuccesResponse({ res, data: "User Freezed successfully" });
-        }
-    };
+   
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
@@ -273,6 +189,77 @@ class UserService {
         }
     };
 
+    freezeUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { UserId } = req.params;
+        if (!UserId) {
+            const User = await this.UserModel.findOneAndupdate({
+                filter: {
+                    _id: req.user?._id,
+                    DeletedAt: { $exists: false }
+                },
+                update:
+                {
+                    DeletedAt: new Date(),
+                    DeletedBy: req.user?._id,
+                    $unset: { RestoredAt: 1, RestoredBy: 1 }
+                }
+            })
+            if (!User) {
+                throw new BadRequestException("sorry Errore while Deleting admin acount");
+            }
+            return SuccesResponse({ res, data: "Admin deleted self successfully" });
+        } else {
+            const targetUser = await this.UserModel.findOneAndupdate({
+                filter: {
+                    _id: UserId,
+                    DeletedAt: { $exists: false }
+                },
+                update:
+                {
+                    DeletedAt: new Date(),
+                    DeletedBy: req.user?._id,
+                    $unset: { RestoredAt: 1, RestoredBy: 1 }
+                }
+            })
+
+            if (!targetUser) {
+                throw new NotFoundException("User not found or already deleted");
+            }
+
+            if (targetUser.role === roleEnum.admin) {
+                throw new BadRequestException("sorry cannot delete admin account");
+            }
+
+            const [Enroll, Submit] = await Promise.all([
+
+                await this.EnrollmentModel.updateMany({
+                    filter: {
+                        UserId: Types.ObjectId.createFromHexString(UserId!),
+                        DeletedAt: { $exists: false }
+                    },
+                    update:
+                    {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    }
+                }),
+
+                await this.SubmissionModel.updateMany({
+                    filter: {
+                        Student: Types.ObjectId.createFromHexString(UserId!)
+                    },
+                    update: {
+                        DeletedAt: new Date(),
+                        DeletedBy: req.user?._id,
+                        $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    }
+                })
+            ])
+
+            return SuccesResponse({ res, data: "User Freezed successfully" });
+        }
+    };
     DeleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
         if (!UserId) {
@@ -323,6 +310,23 @@ class UserService {
             ])
             return SuccesResponse({ res, data: "User restored successfully" });
         }
+    };
+
+GetAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const user = await this.UserModel.findOne({
+            filter: {
+                _id: req.user?._id,
+                DeletedAt: { $exists: false }
+            },
+        });
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+        const Credentials = await GenerateCredentials(req.user as UserHydratedDocument)
+
+        await createRevokeToken(req)
+
+        return SuccesResponse({ res, data: { token: Credentials } });
     };
 
 }

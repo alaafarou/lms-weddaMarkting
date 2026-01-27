@@ -211,6 +211,7 @@ AuthRouter.patch("/resetpassword",validation(ResetpasswordValidation),AuthServic
  */
 AuthRouter.post("/login",validation(loginValidation),AuthService.login)
 
+AuthRouter.get("/Acesstoken",validation(loginValidation),AuthService.login)
 
 export default AuthRouter
 

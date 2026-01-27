@@ -104,4 +104,9 @@ export const LectureParamsValidation = {
 
 
 
+export const GetLecturebyCourseNameValidation = {
+    body: z.strictObject({
+        name: z.string()
+    }),
+};
 

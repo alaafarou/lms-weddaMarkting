@@ -41,13 +41,13 @@ export const SingupValidation = {
         }
 
         // Fullname must have exactly 2 words
-        if (data.fullname.split(" ").length !== 2) {
-            ctx.addIssue({
-                code: "custom",
-                path: ["fullname"],
-                message: "fullName must be like Alaa Mohamed"
-            });
-        }
+        // if (data.fullname.split(" ").length !== 2) {
+        //     ctx.addIssue({
+        //         code: "custom",
+        //         path: ["fullname"],
+        //         message: "fullName must be like Alaa Mohamed"
+        //     });
+        // }
 
         // If role is user - make fields required
         if (data.role === roleEnum.user) {
