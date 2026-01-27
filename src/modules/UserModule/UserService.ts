@@ -113,7 +113,7 @@ class UserService {
         return SuccesResponse({ res, statuscode })
     }
 
-   
+
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
@@ -312,7 +312,7 @@ class UserService {
         }
     };
 
-GetAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    GetAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const user = await this.UserModel.findOne({
             filter: {
                 _id: req.user?._id,
