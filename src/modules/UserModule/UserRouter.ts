@@ -5,7 +5,7 @@ import { Authorization } from "../middlwares/Authentication.middleware";
 import { endpoints } from "./user.endpoint";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
-import { DeleteUserValidation, freezeUserValidation, logoutValidation, restoreUserValidation, updatepasswordValidaton } from "./Uservalidation";
+import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, logoutValidation, restoreUserValidation, updatepasswordValidaton } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
 
 const UserRouter = Router()
@@ -475,6 +475,7 @@ UserRouter.patch("/restoreUser{/:id}",
 
 UserRouter.get("/users",
     Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(GetAllUsersValidation),
     UserService.GetAllAdmins
 )
 

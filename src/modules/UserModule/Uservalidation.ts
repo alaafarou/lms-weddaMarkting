@@ -2,6 +2,7 @@ import z from "zod";
 import { logoutEnum } from "../Utilis/Security/security";
 import { Types } from "mongoose";
 import { roleEnum } from "../../Schema/UserModel";
+import { GradeLevelEnum, StudentEnum } from "../Utilis/Enums/courses";
 
 
 export const updatepasswordValidaton = {
@@ -72,3 +73,23 @@ export const DeleteUserValidation ={
     })
 }
 
+
+
+
+export const GetAllUsersValidation = {
+    body: z.strictObject({
+        fullname: z.string().optional(),
+
+        email: z.email("Invalid email format").optional(),
+
+        password: z.string().optional,
+
+        Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
+        
+        StudentType: z.enum(Object.values(StudentEnum)).optional(),
+
+        
+        phone: z.string()
+
+    }).optional()
+}
