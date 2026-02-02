@@ -82,7 +82,7 @@ export const GetAllUsersValidation = {
 
         email: z.email("Invalid email format").optional(),
 
-        password: z.string().optional,
+        password: z.string().optional(),
 
         Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
         
