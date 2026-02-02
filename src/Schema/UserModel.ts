@@ -1,8 +1,9 @@
 import { HydratedDocument, Schema, Types, model } from 'mongoose';
 import { GenerateHash } from '../modules/Utilis/Security/hash';
-import { ICourse } from './Course';
+import { ICourse, StatusEnum } from './Course';
 import { IOtp } from './OtpModel';
 import { CountryEnum, GradeLevelEnum, StudentEnum } from '../modules/Utilis/Enums/courses';
+import { string } from 'zod';
 
 export enum genderEnum {
   male = "male",
@@ -48,6 +49,8 @@ export interface IUser {
 
   changeCredentialsTime?: Date
   profileimage?: String,
+
+  status?: StatusEnum
 
   Courses: ICourse[]
   Otps: IOtp[]
@@ -108,6 +111,12 @@ export const userSchema = new Schema<IUser>({
     required: function (this) {
       return this.role === roleEnum.user
     },
+  },
+
+  status: {
+    type: String,
+    enum: StatusEnum,
+    default: StatusEnum.Active
   },
 
 

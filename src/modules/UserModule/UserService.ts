@@ -13,6 +13,7 @@ import { EnrollmentModel } from "../../Schema/Enrollment";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { SubmissionModel } from "../../Schema/Submition";
 import { Types } from "mongoose";
+import { StatusEnum } from "../../Schema/Course";
 
 class UserService {
 
@@ -41,6 +42,29 @@ class UserService {
         })
         return SuccesResponse({ res, data: Admins })
     }
+
+
+    GetAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+        const { page, size } = req.query as unknown as { page: number, size: number }
+        const { fullname, email, phone , GradeLevel, status } = req.body
+        const query: any = {};
+
+        if (fullname) query.fullname = { $regex: fullname, $options: "i" };
+        if (email) query.email = email;
+        if (phone) query.phone = phone;
+        if (GradeLevel) query.GradeLevel = GradeLevel;
+        if (status) query.status = status;
+
+        const Users = await this.UserModel.paginate({
+            filter: query,
+            page,
+            size,
+        });
+        if (!Users) {
+            throw new NotFoundException("No users found matching criteria");
+        }
+        return SuccesResponse({ res, data: { Users } });
+    };
 
     MyCourses = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const Courses = await this.EnrollmentModel.find({
@@ -134,13 +158,16 @@ class UserService {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
                     _id: req.user?._id,
-                    DeletedAt: { $exists: true }
+                    DeletedAt: { $exists: true },
+                    status:StatusEnum.InActive
                 },
                 update:
                 {
                     RestoredAt: new Date(),
                     RestoredBy: req.user?._id,
-                    $unset: { DeletedAt: 1, DeletedBy: 1 }
+                    $unset: { DeletedAt: 1, DeletedBy: 1 },
+                    status:StatusEnum.Active
+
                 }
 
             });
@@ -152,13 +179,17 @@ class UserService {
             const targetUser = await this.UserModel.findOneAndupdate({
                 filter: {
                     _id: UserId,
-                    DeletedAt: { $exists: true }
+                    DeletedAt: { $exists: true },
+                     status:StatusEnum.InActive
+
                 },
                 update:
                 {
                     RestoredAt: new Date(),
                     RestoredBy: CurrentAdminId._id,
-                    $unset: { DeletedAt: 1, DeletedBy: 1 }
+                    $unset: { DeletedAt: 1, DeletedBy: 1 },
+                    status:StatusEnum.Active
+
                 },
                 options: {
                     new: false
@@ -207,13 +238,17 @@ class UserService {
             const User = await this.UserModel.findOneAndupdate({
                 filter: {
                     _id: req.user?._id,
-                    DeletedAt: { $exists: false }
+                    DeletedAt: { $exists: false },
+                    status:StatusEnum.Active
+
                 },
                 update:
                 {
                     DeletedAt: new Date(),
                     DeletedBy: req.user?._id,
-                    $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    $unset: { RestoredAt: 1, RestoredBy: 1 },
+                    status:StatusEnum.InActive
+
                 }
             })
             if (!User) {
@@ -224,13 +259,15 @@ class UserService {
             const targetUser = await this.UserModel.findOneAndupdate({
                 filter: {
                     _id: UserId,
-                    DeletedAt: { $exists: false }
+                    DeletedAt: { $exists: false },
+                    status:StatusEnum.Active
                 },
                 update:
                 {
                     DeletedAt: new Date(),
                     DeletedBy: req.user?._id,
-                    $unset: { RestoredAt: 1, RestoredBy: 1 }
+                    $unset: { RestoredAt: 1, RestoredBy: 1 },
+                    status:StatusEnum.InActive
                 }
             })
 
@@ -279,7 +316,8 @@ class UserService {
             const User = await this.UserModel.findOneAndDelete({
                 filter: {
                     _id: req.user?._id,
-                    DeletedAt: { $exists: true }
+                    DeletedAt: { $exists: true },
+                    status:StatusEnum.InActive
                 },
             });
             if (!User) {
@@ -292,7 +330,8 @@ class UserService {
                 filter: {
                     _id: UserId,
                     DeletedAt: { $exists: true },
-                    role: roleEnum.user
+                    role: roleEnum.user,
+                    status:StatusEnum.InActive
                 },
                 options: {
                     new: false

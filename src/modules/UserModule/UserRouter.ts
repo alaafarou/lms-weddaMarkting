@@ -422,7 +422,6 @@ UserRouter.patch("/freezeUser{/:id}",
  *           - sorry this user cant be found as it may be already deleted
  *           - User not found or already restored
  */
-
 UserRouter.patch("/DeleteUser{/:id}",
     validation(DeleteUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
@@ -474,10 +473,13 @@ UserRouter.patch("/restoreUser{/:id}",
     UserService.RestoreUser)
 
 
-UserRouter.get("/Admins",
+UserRouter.get("/users",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.GetAllAdmins
 )
+
+
+
 
     
 
