@@ -24,7 +24,7 @@ export const SingupValidation = {
 
         Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
         Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
-        StudentType:z.enum(Object.values(StudentEnum)).optional(),
+        StudentType: z.enum(Object.values(StudentEnum)).optional(),
 
         ParentsPhone: z.string().optional(),
         phone: z.string()
@@ -66,7 +66,7 @@ export const SingupValidation = {
                     message: "StudentType is required for user role"
                 });
             }
-          
+
             if (!data.Country) {
                 ctx.addIssue({
                     code: "custom",
@@ -140,6 +140,28 @@ export const loginValidation = {
             ),
     })
 }
+
+
+export const AddAdminValidation = {
+    body: z.strictObject({
+
+        email: z.email("Invalid email format"),
+
+        password: z.string()
+            .min(8, "Password must be at least 8 characters")
+            .max(20, "Password must not exceed 20 characters")
+            .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
+                {
+                    message: "Password must contain uppercase, lowercase, number, and special character (@$!%*?&) "
+                }
+            ),
+
+        fullname: z.string()
+            .min(2, "Fullname must be at least 2 characters")
+            .max(50, "Fullname too long"),
+    })
+}
+
 
 export const ResetpasswordValidation = {
 

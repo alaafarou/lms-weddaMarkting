@@ -11,24 +11,33 @@ import { SwaggerDocs } from "./Swagger"
 import ExamService from "./modules/ExamModule/Exam.Service"
 import { validation } from "./modules/middlwares/validation.middleware"
 import { StudentStatusVlaidation } from "./modules/ExamModule/Exam.validation"
-import CodeService from "./modules/CodeModule/CodeService"
 import CodeRouter from "./modules/CodeModule/CodeRouter"
+import cors from "cors"
 config({ path: resolve("./config/.env.dev") })
 
 const bootsrap = async () => {
 
     const app: Express = express()
+   
+
     app.use(express.json())
+    app.use(cors({
+        origin: '*', // For development, this allows all origins
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }));
+
+
     app.use('/upload', express.static(path.join(__dirname, 'upload')));
+    
     await DBconnection()
 
 
-
-    app.use("/Auth",AuthRouter)
-    app.use("/User",UserRouter)
-    app.use("/course",CourseRouter)
-    app.use("/Code",CodeRouter)
-    app.get("/ParentSupervision",validation(StudentStatusVlaidation),ExamService.StudentExamStatus)
+    app.use("/Auth", AuthRouter)
+    app.use("/User", UserRouter)
+    app.use("/courses", CourseRouter)
+    app.use("/Code", CodeRouter)
+    app.get("/ParentSupervision", validation(StudentStatusVlaidation), ExamService.StudentExamStatus)
 
 
 
@@ -37,11 +46,10 @@ const bootsrap = async () => {
 
     app.listen(process.env.PORT, () => {
         console.log(`the application is running on port ${process.env.PORT}`)
-        SwaggerDocs(app,Number(process.env.PORT))
+        SwaggerDocs(app, Number(process.env.PORT))
     })
 
 }
 
 bootsrap()
-
 

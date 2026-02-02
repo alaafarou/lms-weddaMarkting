@@ -474,6 +474,11 @@ UserRouter.patch("/restoreUser{/:id}",
     UserService.RestoreUser)
 
 
+UserRouter.get("/Admins",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.GetAllAdmins
+)
+
     
 
 export default UserRouter

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { forgotpasswordOtpValidation, loginValidation,  ResendForgotPasswordOtpValidation, ResetpasswordValidation, SingupValidation } from "./AuthValidation";
+import { AddAdminValidation, forgotpasswordOtpValidation, loginValidation,  ResendForgotPasswordOtpValidation, ResetpasswordValidation, SingupValidation } from "./AuthValidation";
 import AuthService from "./AuthService";
 
 
@@ -210,6 +210,8 @@ AuthRouter.patch("/resetpassword",validation(ResetpasswordValidation),AuthServic
  *       404: {  description: "Account does not exist"}
  */
 AuthRouter.post("/login",validation(loginValidation),AuthService.login)
+AuthRouter.post("/AddAdmin",validation(AddAdminValidation),AuthService.AddAdmin)
+
 
 AuthRouter.get("/Acesstoken",validation(loginValidation),AuthService.login)
 

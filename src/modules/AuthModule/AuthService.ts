@@ -6,7 +6,7 @@ import { Types } from "mongoose";
 import { createOtpNumber } from "../Utilis/emial/RandomOtp";
 import { loginResponse, UserResponse } from "./AuthEntites";
 import { OtpEnum } from "../Utilis/emial/email";
-import { UserHydratedDocument, UserModel } from "../../Schema/UserModel";
+import { roleEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
 import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
@@ -81,6 +81,41 @@ class AuthenticationService {
 
         return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
     }
+
+
+    AddAdmin =  async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        let { email, password, fullname } = req.body
+        const checkuser = await this.UserModel.findOne({
+            filter: {
+                email,
+                role:roleEnum.admin
+            }
+        })
+        if (checkuser) {
+            throw new ConflictException("this Admin already created")
+        }
+
+        const [user] = await this.UserModel.create({
+            data: [
+                {
+                    fullname,
+                    email,
+                    password,
+                    role:roleEnum.admin,
+                }
+            ]
+        }) || []
+
+        console.log(user)
+
+        if (!user) {
+            throw new BadRequestException("this user already created")
+        }
+
+        return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
+    }
+
+    
 
     //  ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
     //     const { email, code } = req.body
@@ -279,9 +314,11 @@ class AuthenticationService {
             throw new BadRequestException("sorry wrong password or Email")
         }
 
+        const name = User.fullname
+
         const Credentials = await GenerateCredentials(User as UserHydratedDocument)
 
-        return SuccesResponse<loginResponse>({ res , statuscode:200, data: { Credentials } })
+        return SuccesResponse<loginResponse>({ res , statuscode:200, data: { Credentials , name } })
 
     }
 

@@ -28,6 +28,20 @@ class UserService {
         return SuccesResponse<UserResponse>({ res, data: { user: req.user! } })
     }
 
+    GetAllAdmins = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const Admins = await this.UserModel.find({
+            filter: {
+                role: roleEnum.admin,
+                DeletedAt: { $exists: false }
+            },
+            options: {
+                sort: { createdAt: -1 },
+                select: "fullname email"
+            }
+        })
+        return SuccesResponse({ res, data: Admins })
+    }
+
     MyCourses = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const Courses = await this.EnrollmentModel.find({
             filter: {
@@ -41,7 +55,6 @@ class UserService {
         })
         return SuccesResponse({ res, data: Courses })
     }
-
 
     updateprofileimage = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const file = req.file as IMultter
@@ -112,7 +125,6 @@ class UserService {
 
         return SuccesResponse({ res, statuscode })
     }
-
 
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -260,6 +272,7 @@ class UserService {
             return SuccesResponse({ res, data: "User Freezed successfully" });
         }
     };
+
     DeleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
         if (!UserId) {
