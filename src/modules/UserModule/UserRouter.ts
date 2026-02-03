@@ -114,7 +114,7 @@ UserRouter.patch("/profile-image",
  *       '403':
  *         description: Forbidden - User/Admin role required
  */
-UserRouter.get("",
+UserRouter.get("/",
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     UserService.profile)
 
@@ -473,10 +473,16 @@ UserRouter.patch("/restoreUser{/:id}",
     UserService.RestoreUser)
 
 
-UserRouter.get("/users",
+UserRouter.get("/admins",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.GetAllAdmins
+)
+
+
+UserRouter.get("/all",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(GetAllUsersValidation),
-    UserService.GetAllAdmins
+    UserService.GetAllUsers
 )
 
 

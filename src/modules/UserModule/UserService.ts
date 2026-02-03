@@ -50,7 +50,7 @@ class UserService {
         const query: any = {};
 
         if (fullname) query.fullname = { $regex: fullname, $options: "i" };
-        if (email) query.email = email;
+        if (email) query.email = { $regex: email, $options: "i" };
         if (phone) query.phone = phone;
         if (GradeLevel) query.GradeLevel = GradeLevel;
         if (status) query.status = status;

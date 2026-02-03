@@ -7,7 +7,7 @@ import { createOtpNumber } from "../Utilis/emial/RandomOtp";
 import { loginResponse, UserResponse } from "./AuthEntites";
 import { OtpEnum } from "../Utilis/emial/email";
 import { roleEnum, UserHydratedDocument, UserModel } from "../../Schema/UserModel";
-import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
+import { CompareHash } from "../Utilis/Security/hash";
 import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
 import { OtpModel } from "../../Schema/OtpModel";
