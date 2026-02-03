@@ -20,14 +20,14 @@ export const SingupValidation = {
             }),
 
         confirmPassword: z.string(),
-        role: z.enum(["SuperAdmin", "admin", "user"]).optional(),
 
-        Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
+        Gradelevel: z.enum(Object.values(GradeLevelEnum)),
         Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
-        StudentType: z.enum(Object.values(StudentEnum)).optional(),
+        StudentType: z.enum(Object.values(StudentEnum)).default(StudentEnum.Online),
 
-        ParentsPhone: z.string().optional(),
-        phone: z.string()
+        ParentsPhone: z.string(),
+        phone: z.string(),
+
     }).superRefine((data, ctx) => {
         const egyptRegex = /^01[0-9]{9}$/;
         const omanRegex = /^(?:\+?968)?[2-7][0-9]{7}$/;
@@ -40,62 +40,25 @@ export const SingupValidation = {
             });
         }
 
-        // Fullname must have exactly 2 words
-        // if (data.fullname.split(" ").length !== 2) {
-        //     ctx.addIssue({
-        //         code: "custom",
-        //         path: ["fullname"],
-        //         message: "fullName must be like Alaa Mohamed"
-        //     });
-        // }
-
-        // If role is user - make fields required
-        if (data.role === roleEnum.user) {
-            if (!data.Gradelevel) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["gradeLevel"],
-                    message: "Grade level is required for user role"
-                });
-            }
-
-            if (!data.StudentType) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["StudentType"],
-                    message: "StudentType is required for user role"
-                });
-            }
-
-            if (!data.Country) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["country"],
-                    message: "Country is required for user role"
-                });
-
-            }
-
-            if (!data.ParentsPhone && data.Country === CountryEnum.Egypt && !egyptRegex.test(data.ParentsPhone!)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["ParentsPhone"],
-                    message: "please check that parent phone number is valid for Your country"
-                });
-            }
-
-            if (!data.ParentsPhone && data.Country === CountryEnum.Oman && !omanRegex.test(data.ParentsPhone!)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["ParentsPhone"],
-                    message: "please check that parent phone number is valid for Your country"
-                });
-            }
+        if (data.Country === CountryEnum.Egypt && !egyptRegex.test(data.ParentsPhone!)) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["ParentsPhone"],
+                message: "please check that parent phone number is valid for Your country"
+            });
         }
 
-        // Phone validation based on country
+        if (data.Country === CountryEnum.Oman && !omanRegex.test(data.ParentsPhone!)) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["ParentsPhone"],
+                message: "please check that parent phone number is valid for Your country"
+            });
+        }
+
+
         if (data.Country === CountryEnum.Oman) {
-            if (!omanRegex.test(data.phone)) {
+            if (!omanRegex.test(data.phone!)) {
                 ctx.addIssue({
                     code: "custom",
                     path: ["phone"],
@@ -103,8 +66,7 @@ export const SingupValidation = {
                 });
             }
         } else {
-            // Egypt default
-            if (!egyptRegex.test(data.phone)) {
+            if (!egyptRegex.test(data.phone!)) {
                 ctx.addIssue({
                     code: "custom",
                     path: ["phone"],

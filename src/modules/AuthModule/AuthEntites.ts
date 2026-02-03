@@ -10,5 +10,6 @@ export interface loginResponse{
     Credentials:{
         AcessToken:String,
         RefreshToken:String
-    },    name:string
+    },
+    user:UserHydratedDocument
 }

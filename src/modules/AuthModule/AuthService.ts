@@ -41,10 +41,9 @@ class AuthenticationService {
         }
 
     }
- 
+
     Singup = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        let { email, password, fullname, role } = req.body
-        console.log({ email, password, fullname })
+        let { email, password, fullname } = req.body
         const checkuser = await this.UserModel.findOne({
             filter: {
                 email,
@@ -54,54 +53,46 @@ class AuthenticationService {
         if (checkuser) {
             throw new ConflictException("this user already created")
         }
-
-        // if (req.body.ParentsPhone) {
-        //     req.body.ParentsPhone = await GenerateHash({ plaintext: req.body.phone })
-        // }
-
         const [user] = await this.UserModel.create({
             data: [
                 {
                     fullname,
                     email,
                     password,
-                    role,
+                    role:roleEnum.user,
                     ...req.body
                 }
             ]
         }) || []
 
-        console.log(user)
-
         if (!user) {
             throw new BadRequestException("this user already created")
         }
 
-        // await this.SendEmail({ userID: user._id })
-
-        return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
+        return SuccesResponse<UserResponse>({ res, statuscode: 201, data: { user } })
     }
 
 
-    AddAdmin =  async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    AddAdmin = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         let { email, password, fullname } = req.body
         const checkuser = await this.UserModel.findOne({
             filter: {
                 email,
-                role:roleEnum.admin
+                role: roleEnum.admin
             }
         })
         if (checkuser) {
             throw new ConflictException("this Admin already created")
         }
 
+
         const [user] = await this.UserModel.create({
             data: [
                 {
                     fullname,
                     email,
                     password,
-                    role:roleEnum.admin,
+                    role: roleEnum.admin,
                 }
             ]
         }) || []
@@ -112,10 +103,10 @@ class AuthenticationService {
             throw new BadRequestException("this user already created")
         }
 
-        return SuccesResponse<UserResponse>({ res,statuscode:201, data: { user } })
+        return SuccesResponse<UserResponse>({ res, statuscode: 201, data: { user } })
     }
 
-    
+
 
     //  ConfrimEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
     //     const { email, code } = req.body
@@ -217,7 +208,7 @@ class AuthenticationService {
             throw new ConflictException(`Fail to generate new OTP, please try again after ${otp?.expiresAt}`);
         }
         await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
-        return SuccesResponse({ res ,statuscode:200 })
+        return SuccesResponse({ res, statuscode: 200 })
     }
 
     ResendForgotPasswordOtp = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -248,7 +239,7 @@ class AuthenticationService {
 
         await this.SendEmail({ userID: User._id, type: OtpEnum.Forgotpassword })
 
-        return SuccesResponse({ res, statuscode:200, data: {} })
+        return SuccesResponse({ res, statuscode: 200, data: {} })
     }
 
 
@@ -288,7 +279,7 @@ class AuthenticationService {
                 type: OtpEnum.Forgotpassword
             }
         })
-        return SuccesResponse<UserResponse>({ res, statuscode:200, data: { user: User } })
+        return SuccesResponse<UserResponse>({ res, statuscode: 200, data: { user: User } })
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -299,26 +290,22 @@ class AuthenticationService {
             filter: {
                 email,
                 DeletedAt: { $exists: false }
-            }
+            },
+            select: "role fullname password"
         })
+
 
         if (!User) {
             throw new NotFoundException("this account doesnt exists")
         }
 
-        // if (!User.confrimEmailAt) {
-        //     throw new BadRequestException("this account is not verified yet")
-        // }
-
-        if (! await CompareHash({ plaintext: password, HashedValue: User.password })) {
+        if (!await CompareHash({ plaintext: password, HashedValue: User.password })) {
             throw new BadRequestException("sorry wrong password or Email")
         }
 
-        const name = User.fullname
-
         const Credentials = await GenerateCredentials(User as UserHydratedDocument)
 
-        return SuccesResponse<loginResponse>({ res , statuscode:200, data: { Credentials , name } })
+        return SuccesResponse<loginResponse>({ res, statuscode: 200, data: { Credentials, user: User } })
 
     }
 
