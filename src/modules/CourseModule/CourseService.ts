@@ -121,7 +121,7 @@ class CourseService {
     GetCourseStudents = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { email, fullname } = req.body
+        const { email, fullname } = req.query
         let userIdsFilter: any = []
 
         if (email || fullname) {
@@ -167,7 +167,7 @@ class CourseService {
     // perfect test and everything is ok
     GetAllCourses = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { GradeLevel, Semester, Status, name } = req.body
+        const { GradeLevel, Semester, Status, name } = req.query
         const query: any = {};
 
         if (name) query.name = { $regex: name, $options: "i" };
@@ -332,7 +332,7 @@ class CourseService {
 
 
     Grade_Semester_Course = async (req: Request, res: Response, next: NextFunction) => {
-        const { GradeLevel, Semester } = req.body
+        const { GradeLevel, Semester } = req.query
         console.log(req.params.CourseId)
         const Courses = await this.CourseModel.find({
             filter: {

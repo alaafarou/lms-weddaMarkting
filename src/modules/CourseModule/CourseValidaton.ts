@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
-import {  z } from 'zod';
+import { z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
 import { StatusEnum } from '../../Schema/Course';
+import { Query } from 'tsoa';
 
 export const CreateCourseValidation = {
     body: z.strictObject({
@@ -112,12 +113,9 @@ export const getCoursestudentsValidation = {
     query: z.strictObject({
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
-    }).optional(),
-
-    body: z.strictObject({
         fullname: z.string().optional(),
         email: z.email("Invalid email format").optional(),
-    }).optional()
+    }).optional(),
 
 };
 
@@ -153,9 +151,6 @@ export const GetAllCoursesValidation = {
     query: z.strictObject({
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
-    }).optional(),
-
-    body: z.strictObject({
         name: z.string().min(1, 'Course name is required').max(100, 'Course name must be less than 100 characters').optional(),
         description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters').optional(),
         price: z.number().min(0, 'Price must be positive').max(50000, 'Price cannot exceed 50,000').optional(),
@@ -171,16 +166,17 @@ export const GetAllCoursesValidation = {
         Status: z.enum(Object.values(StatusEnum), {
             message: 'Invalid Status. Please select a valid Status'
         }).optional(),
+    }).optional(),
 
-    }).optional()
+
 }
-    
+
 
 
 
 
 export const Grade_Semester_CourseValidation = {
-    body: z.strictObject({
+    query: z.strictObject({
         GradeLevel: z.enum(Object.values(GradeLevelEnum), {
             message: 'Invalid Grade Level. Please select a valid option'
         }).optional(),
