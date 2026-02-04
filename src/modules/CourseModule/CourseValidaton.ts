@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { z } from 'zod';
+import { email, z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
 import { StatusEnum } from '../../Schema/Course';
 
@@ -47,6 +47,9 @@ export const UpdateCourseValidation = {
         subject: z.enum(Object.values(SubjectsEnum), {
             message: 'Invalid Subject. Please select a valid school subject'
         }).optional(),
+        Status: z.enum(Object.values(StatusEnum), {
+            message: 'Invalid Status. Please select a valid Status'
+        }).optional(),
         image: z.object({
             mimetype: z.string(),
             size: z.number(),
@@ -75,6 +78,18 @@ export const checkCourseParam = {
         StudentID: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid StudentID  format'
         }),
+    }),
+};
+
+
+export const AddStudentValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    }),
+    body: z.strictObject({
+        email: z.email("Invalid email format"),
     }),
 };
 
@@ -153,6 +168,9 @@ export const GetAllCoursesValidation = {
         subject: z.enum(Object.values(SubjectsEnum), {
             message: 'Invalid Subject. Please select a valid school subject'
         }).optional(),
+        Status: z.enum(Object.values(StatusEnum), {
+            message: 'Invalid Status. Please select a valid Status'
+        }).optional(),
 
     }).optional()
 }
@@ -162,7 +180,6 @@ export const GetAllCoursesValidation = {
 
 
 export const Grade_Semester_CourseValidation = {
-
     body: z.strictObject({
         GradeLevel: z.enum(Object.values(GradeLevelEnum), {
             message: 'Invalid Grade Level. Please select a valid option'

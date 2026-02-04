@@ -1,11 +1,12 @@
 import { HydratedDocument, model, Schema, Types } from "mongoose";
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from "../modules/Utilis/Enums/courses";
-import { IOtp } from "./OtpModel";
 
 export  enum StatusEnum{
     Active="Active",
     InActive="InActive"
 }
+
+
 export interface ICourse {
 
     name: string,
@@ -30,9 +31,7 @@ export interface ICourse {
 
     RestoredAt: Date,
     RestoredBy: Types.ObjectId,
-    Code:string[]
 
-    Otps: IOtp[]
 
 }
 
@@ -67,18 +66,17 @@ const CourseSchema = new Schema<ICourse>({
         enum: GradeLevelEnum,
         required: true
     },
-    Code:[String],
 
     Semester: {
         type: String,
         enum: SemesterEnum,
-        required: true
+      
     },
 
     subject: {
         type: String,
         enum: SubjectsEnum,
-        required: true
+   
     },
 
     DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
@@ -89,6 +87,7 @@ const CourseSchema = new Schema<ICourse>({
         required: true,
         default:StatusEnum.Active
     },
+
    
 
     RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
@@ -98,11 +97,7 @@ const CourseSchema = new Schema<ICourse>({
 }, { timestamps: true })
 
 
-CourseSchema.virtual("Otps", {
-    ref: "Otp",
-    localField: "_id",
-    foreignField: "course"
-});
+
 
 CourseSchema.virtual('sections', {
     ref: "Section",

@@ -3,7 +3,7 @@ import { validation } from "../middlwares/validation.middleware";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import CodeService from "./CodeService";
-import { GeneratePrivateCodeValidation, GeneratePublicCodeValidation, GetAllCodesLecturesValidation, GetAllGeneralCodesValidation, GetAllPrivateCodesValidation } from "./CodeValidation";
+import { Codeparamsvalidation, GeneratePrivateCodeValidation, GeneratePublicCodeValidation, GetAllCodesLecturesValidation, GetAllGeneralCodesValidation, GetAllPrivateCodesValidation } from "./CodeValidation";
 
 
 const CodeRouter = Router()
@@ -198,7 +198,7 @@ CodeRouter.post("/General",
  *       '401':
  *         description: Unauthorized - Invalid token
  */
-CodeRouter.get("/",
+CodeRouter.get("/all-Course-private-code",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(GetAllPrivateCodesValidation),CodeService.GetAllPrivateCodes) 
 
@@ -281,7 +281,7 @@ CodeRouter.get("/",
  *       '401':
  *         description: Unauthorized - Invalid token
  */
-CodeRouter.get("/General",
+CodeRouter.get("/all-Course-General-code",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(GetAllGeneralCodesValidation),CodeService.GetAllGeneralCodes) 
 
@@ -369,10 +369,14 @@ CodeRouter.get("/General",
  *       '401':
  *         description: Unauthorized - Invalid token
  */
-CodeRouter.get("/CodeLectures",
+CodeRouter.get("/all-lecture-private-codes",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(GetAllCodesLecturesValidation),CodeService.GetAllCodesLecture) 
 
 
+CodeRouter.delete("/GeneralCode/:Codeid",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(Codeparamsvalidation),CodeService.DeletGeneralCode)
+  
 
 export default  CodeRouter 

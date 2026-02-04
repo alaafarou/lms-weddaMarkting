@@ -4,7 +4,7 @@ import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, ConflictException, NotFoundException, } from "../Utilis/response/ErrorResponse"
 import { createOtpNumber } from "../Utilis/emial/RandomOtp"
-import { CourseModel } from "../../Schema/Course"
+import { CourseModel, StatusEnum } from "../../Schema/Course"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
 import { UserModel } from "../../Schema/UserModel"
 import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo"
@@ -27,9 +27,7 @@ class CodeService {
 
     GeneratePrivateCode = async (req: Request, res: Response, next: NextFunction) => {
         const { name, number, LectureName } = req.body
-        if (name && LectureName) {
-            throw new ConflictException("please confirm Do yount Code for Course or for Lecture")
-        }
+     
         let newCodes = []
         let CodeDateSchema
 
@@ -42,7 +40,8 @@ class CodeService {
 
             const Course = await this.CourseModel.findOne({
                 filter: {
-                    name
+                    name,
+                    Status:StatusEnum.Active
                 },
             })
 
@@ -57,6 +56,7 @@ class CodeService {
             const lecture = await this.LectureModel.findOne({
                 filter: {
                     LectureName,
+                    DeletedAt: { $exists: false }
                 },
             })
             CodeDateSchema = newCodes.map((Code) => ({
@@ -75,9 +75,7 @@ class CodeService {
 
     GeneratePublicCode = async (req: Request, res: Response, next: NextFunction) => {
         const { name, LectureName } = req.body
-        if (name && LectureName) {
-            throw new ConflictException("please confirm Do yount Code for Course or for Lecture")
-        }
+      
 
         const random_code = createOtpNumber()
         let CodeQuery: any = {}
@@ -86,7 +84,8 @@ class CodeService {
             const Course = await this.CourseModel.findOne({
                 filter: {
                     name: name,
-                    DeletedAt: { $exists: false }
+                    DeletedAt: { $exists: false },
+                    Status: StatusEnum.Active
                 },
             })
             CodeQuery = {
@@ -352,6 +351,23 @@ class CodeService {
 
         return SuccesResponse({ res, data: Codes });
     };
+
+
+    DeletGeneralCode = async (req: Request, res: Response, next: NextFunction) => {
+        const { Codeid } = req.params;
+        const code = await this.CodeModel.findOneAndDelete({
+            filter: {
+                _id: Codeid,
+                CodeType: CodeTypeEnum.General
+            },
+        });
+
+        if (!code) {
+            throw new NotFoundException("General code not found");
+        }
+
+        return SuccesResponse({ res });
+    }
 
 }
 

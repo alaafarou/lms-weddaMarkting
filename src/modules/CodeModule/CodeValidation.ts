@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
 import { CodeStatusEnum, CodeTypeEnum } from '../../Schema/Code';
+import { Body } from 'tsoa';
+import { Types } from 'mongoose';
 
 
 
@@ -48,6 +50,7 @@ export const GetAllGeneralCodesValidation = {
         Code: z.string()
             .length(6, "OTP must be exactly 6 digits")
             .regex(/^\d{6}$/, "OTP must contain only numbers")
+            .optional()
 
     }).optional(),
 };
@@ -70,9 +73,17 @@ export const GetAllCodesLecturesValidation = {
             message: 'Invalid CodeStatus. Please select a valid CodeStatus'
         }).optional(),
         Code: z.string().optional(),
-        CodeType:z.enum(Object.values(CodeTypeEnum)).default(CodeTypeEnum.Private)
+        CodeType: z.enum(Object.values(CodeTypeEnum)).default(CodeTypeEnum.Private)
     }).optional(),
 };
+
+export const Codeparamsvalidation = {
+    params: z.strictObject({
+        Codeid: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Code ID format'
+        }),
+    }),
+}
 
 
 
