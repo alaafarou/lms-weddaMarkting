@@ -77,15 +77,6 @@ export const SingupValidation = {
     })
 }
 
-export const confirmEmailValidation = {
-    body: z.strictObject({
-        email: z.email("Invalid email format"),
-
-        code: z.string()
-            .length(6, "OTP must be exactly 6 digits")
-            .regex(/^\d{6}$/, "OTP must contain only numbers")
-    })
-}
 
 export const loginValidation = {
     body: z.strictObject({
@@ -123,9 +114,7 @@ export const AddAdminValidation = {
     })
 }
 
-
 export const ResetpasswordValidation = {
-
     body: z.strictObject({
         email: z.email("Invalid email format"),
 
@@ -146,13 +135,6 @@ export const ResetpasswordValidation = {
 }
 
 export const forgotpasswordOtpValidation = {
-    body: z.strictObject({
-        email: z.email("Invalid email format"),
-    })
-}
-
-
-export const ResendConfrimEmailValidation = {
     body: z.strictObject({
         email: z.email("Invalid email format"),
     })
