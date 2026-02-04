@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
+import { GradeLevelEnum, SemesterEnum,} from '../Utilis/Enums/courses';
 import { CodeStatusEnum, CodeTypeEnum } from '../../Schema/Code';
-import { Body } from 'tsoa';
 import { Types } from 'mongoose';
 
 

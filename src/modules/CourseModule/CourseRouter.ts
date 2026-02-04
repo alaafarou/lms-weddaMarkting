@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CreateCourseValidation, GenerateCodeValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, Grade_Semester_CourseValidation, UpdateCourseValidation } from "./CourseValidaton";
+import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, Grade_Semester_CourseValidation, UpdateCourseValidation } from "./CourseValidaton";
 import CourseService from "./CourseService";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";

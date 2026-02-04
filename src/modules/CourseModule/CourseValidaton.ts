@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { email, z } from 'zod';
+import {  z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
 import { StatusEnum } from '../../Schema/Course';
 
