@@ -276,7 +276,7 @@ class CourseService {
             }
         })
 
-        if(!user){
+        if (!user) {
             throw new NotFoundException("sorry this account not created or its admin account")
         }
 
@@ -408,36 +408,36 @@ class CourseService {
                 }
             }),
 
-            this.ExamModel.updateMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
+            // this.ExamModel.updateMany({
+            //     filter: {
+            //         courseId: Types.ObjectId.createFromHexString(CourseId!),
+            //         DeletedAt: { $exists: false },
 
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    },
-                }
-            }),
+            //     },
+            //     update: {
+            //         DeletedAt: Date.now(),
+            //         DeletedBy: req.user?._id,
+            //         $unset: {
+            //             restoredAt: 1,
+            //             restoredBy: 1
+            //         },
+            //     }
+            // }),
 
-            this.LectureModel.updateMany({
-                filter: {
-                    course: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    },
-                }
-            }),
+            // this.LectureModel.updateMany({
+            //     filter: {
+            //         course: Types.ObjectId.createFromHexString(CourseId!),
+            //         DeletedAt: { $exists: false },
+            //     },
+            //     update: {
+            //         DeletedAt: Date.now(),
+            //         DeletedBy: req.user?._id,
+            //         $unset: {
+            //             RestoredAt: 1,
+            //             RestoredBy: 1
+            //         },
+            //     }
+            // }),
         ])
         return SuccesResponse({ res, statuscode: 200 });
     }
