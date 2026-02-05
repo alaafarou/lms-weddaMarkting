@@ -346,10 +346,6 @@ class CourseService {
     };
 
 
-
-
-
-
     // perfect test and everything is ok
     FreezeCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
