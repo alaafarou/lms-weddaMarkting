@@ -10,6 +10,7 @@ export interface ISubmition {
     averageScore: number
     createdAt: Date,
     Ispassed?: boolean,
+    IsSubmited?: boolean,
     Answers: [{ index: number, answer: string }]
 
     RestoredAt?: Date,
@@ -38,7 +39,8 @@ export const SubmissionSchema = new Schema<ISubmition>({
     averageScore: Number,
     Answers: [String],
     Ispassed: { type: Boolean },
-    
+    IsSubmited: { type: Boolean, default: false },
+
     RestoredAt: Date,
     RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 

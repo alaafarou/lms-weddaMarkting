@@ -16,7 +16,11 @@ export const CreateExamValidation = {
             .min(5, "name must not be less than 5")
             .max(100, "name must not exceed 100"),
 
-        questions: z.array(  
+        Duration: z.coerce.number()
+            .min(1, "Duration must be at least 1 minute")
+            .optional(),
+
+        questions: z.array(
             z.strictObject({
                 question: z.string()
                     .min(5, " question  must not be less than 5")
@@ -25,9 +29,9 @@ export const CreateExamValidation = {
                 type: z.enum(Object.values(questionEnum)),
                 Answers: z.array(z.string()).optional(),
                 Score: z.coerce.number().min(0, 'Score must be positive').optional(),
-                correctAnswer: z.string().min(1, "Correct answer required")
+                correctAnswer: z.string().min(1, "Correct answer required"),
             })
-        ).min(1, "At least one question required"),  
+        ).min(1, "At least one question required"),
     }).superRefine((data, ctx) => {
         data.questions.forEach(Question => {
             // if (
@@ -45,9 +49,9 @@ export const CreateExamValidation = {
             // }
             if (
                 Question.type === questionEnum.multiple_choice
-                     &&
+                &&
                 Question.Answers
-                     &&
+                &&
                 !Question.Answers.includes(Question.correctAnswer)) {
                 ctx.addIssue({
                     code: "custom",
@@ -58,7 +62,7 @@ export const CreateExamValidation = {
 
             if (
                 Question.type === questionEnum.true_false
-                               &&
+                &&
                 !["false", "true"].includes(Question.correctAnswer)
             ) {
                 ctx.addIssue({
@@ -73,13 +77,48 @@ export const CreateExamValidation = {
 
 
 
+export const AddQuestionValidation = {
+    body: z.strictObject({
+        question: z.string()
+            .min(5, " question  must not be less than 5")
+            .max(300, " question must not exceed 300 "),
+        type: z.enum(Object.values(questionEnum)),
+        Answers: z.array(z.string()).optional(),
+        Score: z.coerce.number().min(0, 'Score must be positive').optional(),
+        correctAnswer: z.string().min(1, "Correct answer required"),
+    }).superRefine((data, ctx) => {
+        if (
+            data.type === questionEnum.multiple_choice
+                &&
+            data.Answers
+                &&
+            !data.Answers.includes(data.correctAnswer)) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["body"],
+                message: `Correct anser must be one of the provided answers`,
+            })
+        }
 
+        if (
+            data.type === questionEnum.true_false
+                &&
+            !["false", "true"].includes(data.correctAnswer)
+        ) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["body"],
+                message: `Correct answer must be true or false`,
+            })
+        }
+    })
+}
 
 
 
 
 export const ExamparamValidation = {
-     params: z.strictObject({
+    params: z.strictObject({
         ExamID: z.string().refine((id) => {
             return Types.ObjectId.isValid(id);
         }, "Invalid SectionID"),
@@ -90,12 +129,28 @@ export const ExamparamValidation = {
             return Types.ObjectId.isValid(id);
         }, "Invalid SectionID"),
     })
-}  
+}
 
 
 export const StudentStatusVlaidation = {
     body: z.strictObject({
         ParentsPhone: z.string(),
         phone: z.string()
+    })
+}
+
+
+
+export const DeleteExamValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+        SectionID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid SectionID"),
+        QuestionID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid Question ID"),
     })
 }

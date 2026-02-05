@@ -18,7 +18,7 @@ class SectionService {
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
-    
+
     constructor() { }
 
 
@@ -61,7 +61,6 @@ class SectionService {
                 name: req.body.name,
                 UpdatedBy: req.user?._id
             },
-            options: { new: false }
         })
         if (!UpdateSection) {
             throw new NotFoundException("sorry the secton You are trying to update Doesnt exists")
@@ -70,20 +69,35 @@ class SectionService {
     }
 
     DeleteSection = async (req: Request, res: Response, next: NextFunction) => {
-        const { SectionID, CourseId } = req.params
-
+        const { SectionID } = req.params
+        
+        const SectionId = Types.ObjectId.createFromHexString(SectionID!)
 
         const section = await this.SectionModel.findOneAndDelete({
             filter: {
                 _id: SectionID,
-                courseId: CourseId,
                 DeletedAt: { $exists: true }
-            }
-
+            },
         })
-
-        if (!section) {
+        if(!section){
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
+        }
+
+        const [lectures, exams] = await Promise.all([
+             this.LectureModel.deleteMany({
+                filter: {
+                    SectionId,
+                },
+            }),
+            this.ExamModel.deleteMany({
+                filter: {
+                    SectionID:SectionId
+                },              
+            })
+        ])
+
+        if (!lectures || !exams) {
+            throw new BadRequestException("sorry failed to Delete the exams and lectures of the Section")
         }
         return SuccesResponse({ res })
     }
@@ -91,42 +105,76 @@ class SectionService {
     freezeSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
 
-        const section = await this.SectionModel.findOneAndDelete({
+        const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
                 DeletedAt: { $exists: false },
                 courseId: CourseId
-            }
-
+            },
+            update: {
+                DeletedAt: new Date(),
+                DeletedBy: req.user?._id,
+                $unset: {
+                    RestoredAt: 1,
+                    RestoredBy: 1
+                }
+            },
         })
+
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
+
+        const [lectures, exams] = await Promise.all([
+            await this.LectureModel.updateMany({
+                filter: {
+                    SectionId: section._id,
+                    DeletedAt: { $exists: false },
+                },
+                update: {
+                    DeletedAt: new Date(),
+                    DeletedBy: req.user?._id,
+                    $unset: {
+                        RestoredAt: 1,
+                        RestoredBy: 1
+                    }
+
+                }
+            }),
+            await this.ExamModel.updateMany({
+                filter: {
+                    SectionID: section._id,
+                    DeletedAt: { $exists: false },
+                },
+                update: {
+                    DeletedAt: new Date(),
+                    DeletedBy: req.user?._id,
+                    $unset: {
+                        restoredAt: 1,
+                        restoredBy: 1
+                    }
+
+                }
+            })
+        ])
+        if (!lectures || !exams) {
+            throw new BadRequestException("sorry failed to freeze the lectures and exams of the section ")
+        }
+
         return SuccesResponse({ res })
     }
 
-
     RestoreSection = async (req: Request, res: Response, next: NextFunction) => {
-        const { SectionID, CourseId } = req.params
-        const checkCourse = await this.CourseModel.findOne({
-            filter: {
-                _id: CourseId,
-                DeletedAt: { $exits: false }
+        const { SectionID } = req.params
 
-            }
-        })
-        if (!checkCourse) {
-            throw new NotFoundException("the Course u want to create section on is InActive")
-        }
-
-        const section = await this.CourseModel.findOneAndupdate({
+        const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                DeletedAt: { $exits: true }
+                DeletedAt:{$exists:true}
             },
             update: {
-                restoredAt: new Date(),
-                restoredBy: req.user?._id,
+                RestoredAt: new Date(),
+                RestoredBy: req.user?._id,
                 $unset: {
                     DeletedAt: 1,
                     DeletedBy: 1
@@ -134,11 +182,46 @@ class SectionService {
             },
         })
         if (!section) {
-            throw new BadRequestException("sorry failed to Delete the section as it must be in IActive status")
+            throw new BadRequestException("sorry failed to restore the section ")
+        }
+
+        const [lectures, exams] = await Promise.all([
+            await this.LectureModel.updateMany({
+                filter: {
+                    SectionId: section._id,
+                    DeletedAt: { $exists: true },
+                },
+                update: {
+                    RestoredAt: new Date(),
+                    RestoredBy: req.user?._id,
+                    $unset: {
+                        DeletedAt: 1,
+                        DeletedBy: 1
+                    }
+
+                }
+            }),
+            await this.ExamModel.updateMany({
+                filter: {
+                    SectionID: section._id,
+                    DeletedAt: { $exists: true },
+                },
+                update: {
+                    restoredAt: new Date(),
+                    restoredBy: req.user?._id,
+                    $unset: {
+                        DeletedAt: 1,
+                        DeletedBy: 1
+                    }
+
+                }
+            })
+        ])
+        if (!lectures || !exams) {
+            throw new BadRequestException("sorry failed to restore the lectures and exams of the section ")
         }
         return SuccesResponse({ res })
     }
-
 
     GetSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
@@ -146,11 +229,11 @@ class SectionService {
         const checkCourse = await this.CourseModel.findOne({
             filter: {
                 _id: req.params.CourseId,
-                DeletedAt:{$exists:false}
+                DeletedAt: { $exists: false }
             }
         })
-        if(!checkCourse) {
-            throw new  NotFoundException(" the Course that this Section belong to is freezed or not Found")
+        if (!checkCourse) {
+            throw new NotFoundException(" the Course that this Section belong to is freezed or not Found")
         }
         const section = await this.SectionModel.findOne({
             filter: {
@@ -165,22 +248,29 @@ class SectionService {
 
         const [lectures, exams] = await Promise.all([
             await this.LectureModel.find({
-                filter:{
-                    SectionId:section._id,
-                },              
-            }),
-             await this.ExamModel.find({
-                filter:{
-                    SectionID:section._id,
+                filter: {
+                    SectionId: section._id,
                 },
+                options: {
+                    lean: true
+                },
+                select: "LectureName"
+            }),
+            await this.ExamModel.find({
+                filter: {
+                    SectionID: section._id,
+                },
+                select: "name",
+                options: {
+                    lean: true
+                }
             })
         ])
-        return SuccesResponse({ res ,data:{section, lectures, exams} })
+        return SuccesResponse({ res, data: { section, lectures, exams } })
     }
 
-
     getAllSections = async (req: Request, res: Response, next: NextFunction) => {
-        const {  CourseId } = req.params
+        const { CourseId } = req.params
 
         const sections = await this.SectionModel.find({
             filter: {
@@ -192,7 +282,7 @@ class SectionService {
         if (!sections) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
-        return SuccesResponse({ res , data:sections })
+        return SuccesResponse({ res, data: sections })
     }
 
 }

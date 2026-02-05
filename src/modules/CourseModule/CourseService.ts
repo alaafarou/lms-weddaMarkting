@@ -333,7 +333,6 @@ class CourseService {
 
     Grade_Semester_Course = async (req: Request, res: Response, next: NextFunction) => {
         const { GradeLevel, Semester } = req.query
-        console.log(req.params.CourseId)
         const Courses = await this.CourseModel.find({
             filter: {
                 GradeLevel,
@@ -404,36 +403,36 @@ class CourseService {
                 }
             }),
 
-            // this.ExamModel.updateMany({
-            //     filter: {
-            //         courseId: Types.ObjectId.createFromHexString(CourseId!),
-            //         DeletedAt: { $exists: false },
+            this.ExamModel.updateMany({
+                filter: {
+                    courseId: Types.ObjectId.createFromHexString(CourseId!),
+                    DeletedAt: { $exists: false },
 
-            //     },
-            //     update: {
-            //         DeletedAt: Date.now(),
-            //         DeletedBy: req.user?._id,
-            //         $unset: {
-            //             restoredAt: 1,
-            //             restoredBy: 1
-            //         },
-            //     }
-            // }),
+                },
+                update: {
+                    DeletedAt: Date.now(),
+                    DeletedBy: req.user?._id,
+                    $unset: {
+                        restoredAt: 1,
+                        restoredBy: 1
+                    },
+                }
+            }),
 
-            // this.LectureModel.updateMany({
-            //     filter: {
-            //         course: Types.ObjectId.createFromHexString(CourseId!),
-            //         DeletedAt: { $exists: false },
-            //     },
-            //     update: {
-            //         DeletedAt: Date.now(),
-            //         DeletedBy: req.user?._id,
-            //         $unset: {
-            //             RestoredAt: 1,
-            //             RestoredBy: 1
-            //         },
-            //     }
-            // }),
+            this.LectureModel.updateMany({
+                filter: {
+                    course: Types.ObjectId.createFromHexString(CourseId!),
+                    DeletedAt: { $exists: false },
+                },
+                update: {
+                    DeletedAt: Date.now(),
+                    DeletedBy: req.user?._id,
+                    $unset: {
+                        RestoredAt: 1,
+                        RestoredBy: 1
+                    },
+                }
+            }),
         ])
         return SuccesResponse({ res, statuscode: 200 });
     }
@@ -512,9 +511,6 @@ class CourseService {
 
         return SuccesResponse({ res })
     }
-
-
-
 
 
 }

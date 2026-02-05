@@ -3,12 +3,12 @@ import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
 import ExamService from "./Exam.Service";
-import { CreateExamValidation, ExamparamValidation } from "./Exam.validation";
+import { AddQuestionValidation, CreateExamValidation, DeleteExamValidation, ExamparamValidation } from "./Exam.validation";
 import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cloud.multer";
 
 
 
-const ExamRouter = Router({mergeParams:true})
+const ExamRouter = Router({ mergeParams: true })
 
 /**
  * @openapi
@@ -105,296 +105,64 @@ const ExamRouter = Router({mergeParams:true})
  *           - invalid Section / failed to Create Exam
  */
 ExamRouter.post("/",
-    Authorization({AcessRoles:[roleEnum.admin]}),
-    localFileUpload({validation:fileValidation.image,folder:folderEnum.Exam}).array("images"),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    localFileUpload({ validation: fileValidation.image, folder: folderEnum.Exam }).array("images"),
     ExamService.FlatenQuestions,
     validation(CreateExamValidation),
     ExamService.CreateExam
 )
 
 
+ExamRouter.get("/:ExamID", 
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(ExamparamValidation),
+    ExamService.GetExamQuestions
+)
 
-/**
- * @openapi
- * /:CourseId/section/:SectionID/Exam/:ExamID:
- *   delete:
- *     tags: [Exams]
- *     summary: Hard delete exam (Admin only - must be soft-deleted first)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: ExamID
- *         in: path
- *         description: MongoDB ObjectId of the exam to delete
- *         required: true
- *         schema:
- *           type: string
- *           example: "64f8b123456789abcdef5678"
- *     responses:
- *       '200':
- *         description: Exam deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Exam deleted successfully"
- *       '400':
- *         description: Invalid ExamID format or Error deleting exam (not soft-deleted)
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: Exam not found
- *       '500':
- *         description: Internal server error
- */
 ExamRouter.delete("/:ExamID",
-    Authorization({AcessRoles:[roleEnum.admin]}),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(ExamparamValidation),
     ExamService.DeleteExame
 )
 
 
-
-/**
- * @openapi
- * /:CourseId/section/:SectionID/Exam/freeze/:ExamID:
- *   delete:
- *     tags: [Exams]
- *     summary: Soft delete/freeze exam (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: ExamID
- *         in: path
- *         description: MongoDB ObjectId of the exam to freeze
- *         required: true
- *         schema:
- *           type: string
- *           example: "64f8b123456789abcdef5678"
- *     responses:
- *       '200':
- *         description: Exam freezed/soft-deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Exam freezed successfully"
- *       '400':
- *         description: Invalid ExamID format or failed to soft delete exam (already deleted)
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: Exam not found or already soft-deleted
- *       '500':
- *         description: Internal server error
- */
-ExamRouter.delete("/freeze/:ExamID",
-    Authorization({AcessRoles:[roleEnum.admin]}),
-    validation(ExamparamValidation),
-    ExamService.freezExame
-)
-
-
-/**
- * @openapi
- * /:CourseId/section/:SectionID/Exam/restore/:ExamID:
- *   patch:
- *     tags: [Exams]
- *     summary: Restore soft-deleted exam (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: CourseId
- *         in: path
- *         description: MongoDB ObjectId of the course
- *         required: true
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *       - name: SectionID
- *         in: path
- *         description: MongoDB ObjectId of the section
- *         required: true
- *         schema:
- *           type: string
- *           example: "64f8b123456789abcdef1234"
- *       - name: ExamID
- *         in: path
- *         description: MongoDB ObjectId of the exam to restore
- *         required: true
- *         schema:
- *           type: string
- *           example: "64f8b123456789abcdef5678"
- *     responses:
- *       '200':
- *         description: Exam restored successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Exam restored successfully"
- *       '400':
- *         description: Invalid CourseId/SectionID/ExamID format or failed to restore exam
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: Exam not found or not soft-deleted
- *       '409':
- *         description: Cant restore - Section or Course are deleted
- *       '500':
- *         description: Internal server error
- */
-ExamRouter.patch("/restore/:ExamID",
-    Authorization({AcessRoles:[roleEnum.admin]}),
-    validation(ExamparamValidation),
-    ExamService.restoreExame
-)
-
-
-/**
- * @openapi
- * /courses/:CourseId/exam/:ExamID/start:
- *   post:
- *     tags: 
- *     - Exams
- *     summary: Start exam (Student must be enrolled)
- *     security:
- *     - bearerAuth: []
- *     parameters:
- *     - in: path
- *       name: CourseId
- *       required: true
- *       schema:
- *         type: string
- *       description: MongoDB ObjectId of course
- *     - in: path
- *       name: ExamID
- *       required: true
- *       schema:
- *         type: string
- *       description: MongoDB ObjectId of exam
- *     responses:
- *       '201':
- *         description: Exam started successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     Exam:
- *                       type: string
- *                     Student:
- *                       type: string
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *       '400':
- *         description: |
- *           - sorry this User is not Enrolled in the Course
- *           - sorry this exam is not Created in the Course
- *           - sorry Errore starting Exam
- *       '409':
- *         description: this Student Already Submitted Exam
- */
 ExamRouter.post("/:ExamID",
-    Authorization({AcessRoles:[roleEnum.user]}),
+    Authorization({ AcessRoles: [roleEnum.user] }),
     validation(ExamparamValidation),
     ExamService.startExam
 )
 
 
-/**
- * @openapi
- * /courses/:CourseId/exam/:ExamID/submit:
- *   post:
- *     tags: 
- *     - Exams
- *     summary: Submit exam answers with auto-grading
- *     security:
- *     - bearerAuth: []
- *     parameters:
- *     - in: path
- *       name: CourseId
- *       required: true
- *       schema:
- *         type: string
- *     - in: path
- *       name: ExamID
- *       required: true
- *       schema:
- *         type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [Answers]
- *             properties:
- *               Answers:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["A", "B", "true", "42"]
- *     responses:
- *       '200':
- *         description: Exam submitted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     grade:
- *                       type: number
- *                     Ispassed:
- *                       type: boolean
- *                     Answers:
- *                       type: array
- *                       items:
- *                         type: string
- *       '400':
- *         description: |
- *           - Sorry this Exam cant be submitted
- *           - sorry the Exam time is finished Good luck next time
- *       '404':
- *         description: Sorry no Questions can be found to submit annswers
- */
+ExamRouter.post("/:ExamID/AddQuestion",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    localFileUpload({ validation: fileValidation.image, folder: folderEnum.Exam }).single("image"),
+    validation(AddQuestionValidation),
+    ExamService.AddQuestions
+)
+
+ExamRouter.delete("/DeleteQuestion/:QuestionID",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(DeleteExamValidation),
+    ExamService.DeleteQuestion
+)
+
+
+ExamRouter.delete("/freeze/:ExamID",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(ExamparamValidation),
+    ExamService.freezExame
+)
+
+
+ExamRouter.patch("/restore/:ExamID",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(ExamparamValidation),
+    ExamService.restoreExame
+)
+
+
 ExamRouter.patch("/submit/:ExamID",
-    Authorization({AcessRoles:[roleEnum.user]}),
+    Authorization({ AcessRoles: [roleEnum.user] }),
     validation(ExamparamValidation),
     ExamService.submiteExame
 )

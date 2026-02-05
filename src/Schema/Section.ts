@@ -16,6 +16,9 @@ export interface ISection {
     DeletedAt?: Date,
     DeletedBy?: Types.ObjectId,
 
+    RestoredAt?: Date,
+    RestoredBy?: Types.ObjectId,
+
 }
 
 export const SectionSchema = new Schema<ISection>({
@@ -38,6 +41,9 @@ export const SectionSchema = new Schema<ISection>({
 
     DeletedAt:Date,
     DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
+
+    RestoredAt: Date,
+    RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 
 
 }, { timestamps: true })
