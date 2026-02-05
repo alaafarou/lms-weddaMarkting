@@ -356,7 +356,6 @@ class CourseService {
         const course = await this.CourseModel.findOneAndupdate({
             filter: {
                 _id: CourseId,
-                DeletedAt: { $exists: false },
                 Status: StatusEnum.Active,
             },
             update: {
@@ -451,7 +450,6 @@ class CourseService {
         const course = await this.CourseModel.findOneAndupdate({
             filter: {
                 _id: CourseId,
-                DeletedAt: { $exists: true },
                 Status: StatusEnum.InActive
             },
             update: {
@@ -482,7 +480,6 @@ class CourseService {
         const course = await this.CourseModel.findOneAndDelete({
             filter: {
                 _id: CourseId,
-                DeletedAt: { $exists: true },
                 Status: StatusEnum.InActive
             },
         })

@@ -2,7 +2,6 @@ import { Types } from 'mongoose';
 import { z } from 'zod';
 import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
 import { StatusEnum } from '../../Schema/Course';
-import { Query } from 'tsoa';
 
 export const CreateCourseValidation = {
     body: z.strictObject({
@@ -78,6 +77,14 @@ export const checkCourseParam = {
     body: z.strictObject({
         StudentID: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid StudentID  format'
+        }),
+    }),
+};
+
+export const CourseParamValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
         }),
     }),
 };

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, Grade_Semester_CourseValidation, UpdateCourseValidation } from "./CourseValidaton";
+import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CourseParamValidation, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, Grade_Semester_CourseValidation, UpdateCourseValidation } from "./CourseValidaton";
 import CourseService from "./CourseService";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
@@ -66,18 +66,18 @@ CourseRouter.delete("/RemoveStudent/:CourseId",
 
 CourseRouter.delete("/freeze/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(checkCourseParam), CourseService.FreezeCourse)
+    validation(CourseParamValidation), CourseService.FreezeCourse)
 
 
 
 CourseRouter.patch("/restore/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(checkCourseParam), CourseService.RestoreCourse)
+    validation(CourseParamValidation), CourseService.RestoreCourse)
 
 
 CourseRouter.delete("/Delete/:CourseId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(checkCourseParam), CourseService.DeleteCourse)
+    validation(CourseParamValidation), CourseService.DeleteCourse)
 
 
 export default CourseRouter
