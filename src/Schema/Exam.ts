@@ -9,7 +9,7 @@ export interface IExam {
 
     name: string,
     SectionID: Types.ObjectId,
-    CourseID:Types.ObjectId
+    CourseID: Types.ObjectId
 
 
     CreatedAt: Date,
@@ -24,7 +24,7 @@ export interface IExam {
     DeletedAt: Date,
     DeletedBy: Types.ObjectId,
 
-    Duration:number
+    Duration: number
 
 
 }
@@ -39,9 +39,9 @@ export const ExamSchema = new Schema<IExam>({
     },
 
     SectionID: { type: Schema.Types.ObjectId, ref: "Section", required: true },
-    CourseID:    { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    CourseID: { type: Schema.Types.ObjectId, ref: "Course", required: true },
 
- 
+
 
     CreatedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
@@ -56,15 +56,24 @@ export const ExamSchema = new Schema<IExam>({
 
     Duration: {
         type: Number,
-        default:5*60,
+        default: 5 * 60,
         required: true
     }
 
-}, { timestamps: true })
+},{
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+})
 
 
 
+ExamSchema.virtual('questions', {
+    ref: "Question",
+    localField: "_id",
+    foreignField: "ExamID"
+});
 
 
 export type ExamHydratedDocument = HydratedDocument<IExam>;
-export const ExamModule = model<IExam>("Exam",ExamSchema)
+export const ExamModule = model<IExam>("Exam", ExamSchema)

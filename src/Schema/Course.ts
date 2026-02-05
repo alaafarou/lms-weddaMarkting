@@ -76,7 +76,6 @@ const CourseSchema = new Schema<ICourse>({
     subject: {
         type: String,
         enum: SubjectsEnum,
-   
     },
 
     DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
