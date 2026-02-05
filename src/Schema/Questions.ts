@@ -73,4 +73,12 @@ QuestionsSchema.pre('insertMany', function (next, docs) {
     next();
 });
 
+QuestionsSchema.pre('save', function (next) {
+    if (this.type === questionEnum.true_false) {
+        this.Answers = ['true', 'false'];
+    }
+    next();
+});
+
+
 export const QuestionModel = model<IQuestion>("Questions", QuestionsSchema)
