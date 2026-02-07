@@ -23,11 +23,10 @@ class CodeService {
     constructor() { }
 
 
-  
 
     GeneratePrivateCode = async (req: Request, res: Response, next: NextFunction) => {
         const { name, number, LectureName } = req.body
-     
+
         let newCodes = []
         let CodeDateSchema
 
@@ -41,7 +40,7 @@ class CodeService {
             const Course = await this.CourseModel.findOne({
                 filter: {
                     name,
-                    Status:StatusEnum.Active
+                    Status: StatusEnum.Active
                 },
             })
 
@@ -75,7 +74,7 @@ class CodeService {
 
     GeneratePublicCode = async (req: Request, res: Response, next: NextFunction) => {
         const { name, LectureName } = req.body
-      
+
 
         const random_code = createOtpNumber()
         let CodeQuery: any = {}
@@ -88,6 +87,9 @@ class CodeService {
                     Status: StatusEnum.Active
                 },
             })
+            if (!Course) {
+                throw new NotFoundException("this Course not created")
+            }
             CodeQuery = {
                 Data: {
                     CodeType: CodeTypeEnum.General,
@@ -96,6 +98,7 @@ class CodeService {
                 },
                 filter: {
                     CourseId: Course?._id,
+                    CodeType: CodeTypeEnum.General,
                     lectureId: { $exists: false }
                 }
             }
@@ -109,6 +112,9 @@ class CodeService {
                     DeletedAt: { $exists: false }
                 },
             })
+            if (!Lecture) {
+                throw new NotFoundException("this lecture not created")
+            }
             CodeQuery = {
                 Data: {
                     CodeType: CodeTypeEnum.General,
@@ -117,6 +123,7 @@ class CodeService {
                 },
                 filter: {
                     lectureId: Lecture?._id,
+                    CodeType: CodeTypeEnum.General,
                     CourseId: { $exists: false }
                 }
             }
@@ -155,7 +162,7 @@ class CodeService {
 
     GetAllPrivateCodes = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
-        const { email, phone, name, Code, GradeLevel, Semester, CodeStatus } = req.body || {};
+        const { email, phone, name, Code, GradeLevel, Semester, CodeStatus } = req.query || {};
 
         let userIdsFilter = {};
         let courseFilter = {};
@@ -218,21 +225,22 @@ class CodeService {
                 ...courseFilter,
                 ...userIdsFilter,
                 ...CodeFilter,
-                CodeType: CodeTypeEnum.Private
+                CodeType: CodeTypeEnum.Private,
+                lectureId: { $exists: false }
             },
             page,
             size,
             options: {
-                populate: [{
-                    path: "Usedby",
-                    select: "email fullname lastname firstname phone"
-                },
-                {
-                    path: "CourseId",
-                    select: "name"
-
-                }],
-                sort: { usedAt: -1 } // Most recently used first
+                populate: [
+                    {
+                        path: "Usedby",
+                        select: "email fullname phone"
+                    },
+                    {
+                        path: "CourseId",
+                        select: "name"
+                    }],
+                sort: { usedAt: -1 }, // Most recently used first
             },
         });
 
@@ -242,7 +250,7 @@ class CodeService {
 
     GetAllGeneralCodes = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
-        const { name, Code, GradeLevel, Semester } = req.body;
+        const { name, Code, GradeLevel, Semester } = req.query;
 
         let courseFilter = {}
         let CodeFilter: any = {}
@@ -297,26 +305,29 @@ class CodeService {
     };
 
     //////////////////////////////////////////////
-   
+
 
 
     GetAllCodesLecture = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
-        const { LectureName, Code, CodeStatus , CodeType } = req.body || {};
-
+        const { LectureName, Code, CodeStatus, CodeType } = req.query;
+        console.log(CodeType, LectureName, page)
         let LectureFilter = {};
         let CodeFilter: any = {};
 
-        if (Code || CodeStatus) {
-            if (Code) {
-                CodeFilter.Code = { $regex: Code, $options: "i" }
-            }
 
-            if (CodeStatus) {
-                CodeFilter.CodeStatus = CodeStatus
-            }
-
+        if (Code) {
+            CodeFilter.Code = { $regex: Code, $options: "i" }
         }
+
+        if (CodeStatus) {
+            CodeFilter.CodeStatus = CodeStatus
+        }
+
+        if (CodeType) {
+            CodeFilter.CodeType = CodeType
+        }
+
 
         if (LectureName) {
             const lectures = await this.LectureModel.find({
@@ -331,17 +342,16 @@ class CodeService {
             filter: {
                 ...LectureFilter,
                 ...CodeFilter,
-                CodeType
             },
             page,
             size,
             options: {
                 populate: [{
                     path: "Usedby",
-                    select: "email fullname lastname firstname phone"
+                    select: "email fullname lastname firstname phone Gradelevel"
                 },
                 {
-                    path: "LectureId",
+                    path: "lectureId",
                     select: "LectureName"
 
                 }],
@@ -368,6 +378,48 @@ class CodeService {
 
         return SuccesResponse({ res });
     }
+
+
+    GetLecturebyCourseName = async (req: Request, res: Response, next: NextFunction) => {
+        const { name } = req.body
+
+        const Course = await this.CourseModel.findOne({
+            filter: {
+                name
+            },
+        })
+
+        if (!Course) {
+            throw new NotFoundException("No course found matching criteria");
+        }
+
+        const Lecture = await this.LectureModel.find({
+            filter: {
+                CourseId: Course._id,
+            },
+            select: "LectureName"
+        })
+
+        if (!Lecture) {
+            throw new NotFoundException("No course found matching criteria");
+        }
+
+        return SuccesResponse({ res, data: Lecture });
+    }
+
+
+    Grade_Semester_Course = async (req: Request, res: Response, next: NextFunction) => {
+        const { GradeLevel, Semester } = req.query
+        const Courses = await this.CourseModel.find({
+            filter: {
+                GradeLevel,
+                Semester,
+                Status: StatusEnum.Active
+            },
+            select: "name"
+        });
+        return SuccesResponse({ res, data: Courses });
+    };
 
 }
 

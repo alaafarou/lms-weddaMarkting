@@ -182,17 +182,5 @@ export const GetAllCoursesValidation = {
 
 
 
-export const Grade_Semester_CourseValidation = {
-    query: z.strictObject({
-        GradeLevel: z.enum(Object.values(GradeLevelEnum), {
-            message: 'Invalid Grade Level. Please select a valid option'
-        }).optional(),
-        Semester: z.enum(Object.values(SemesterEnum), {
-            message: 'Invalid Semester. Please select either First or Second Semester'
-        }).optional(),
-
-    })
-}
-
 
 

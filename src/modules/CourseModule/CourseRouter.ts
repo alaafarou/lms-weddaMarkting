@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CourseParamValidation, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, Grade_Semester_CourseValidation, UpdateCourseValidation } from "./CourseValidaton";
+import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CourseParamValidation, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, UpdateCourseValidation } from "./CourseValidaton";
 import CourseService from "./CourseService";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
@@ -22,10 +22,6 @@ CourseRouter.get("/",
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     validation(GetAllCoursesValidation), CourseService.GetAllCourses)
 
-
-CourseRouter.get("/Grade-Semester-Course",
-    Authorization({ AcessRoles: [roleEnum.admin] }),
-    validation(Grade_Semester_CourseValidation), CourseService.Grade_Semester_Course)
 
 
 CourseRouter.patch("/:CourseId",

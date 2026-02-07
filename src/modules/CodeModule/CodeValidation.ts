@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GradeLevelEnum, SemesterEnum,} from '../Utilis/Enums/courses';
+import { GradeLevelEnum, SemesterEnum, } from '../Utilis/Enums/courses';
 import { CodeStatusEnum, CodeTypeEnum } from '../../Schema/Code';
 import { Types } from 'mongoose';
 
@@ -9,9 +9,6 @@ export const GetAllPrivateCodesValidation = {
     query: z.strictObject({
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
-    }).optional(),
-
-    body: z.strictObject({
         email: z.string("Invalid email format").optional(),
         phone: z.string().optional(),
         name: z.string().optional(),
@@ -25,17 +22,15 @@ export const GetAllPrivateCodesValidation = {
             message: 'Invalid CodeStatus. Please select a valid CodeStatus'
         }).optional(),
         Code: z.string().optional()
-
     }).optional(),
+
+
 };
 
 export const GetAllGeneralCodesValidation = {
     query: z.strictObject({
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
-    }).optional(),
-
-    body: z.strictObject({
         name: z.string().optional(),
 
         GradeLevel: z.enum(Object.values(GradeLevelEnum), {
@@ -50,7 +45,6 @@ export const GetAllGeneralCodesValidation = {
             .length(6, "OTP must be exactly 6 digits")
             .regex(/^\d{6}$/, "OTP must contain only numbers")
             .optional()
-
     }).optional(),
 };
 
@@ -61,18 +55,15 @@ export const GetAllGeneralCodesValidation = {
 
 
 export const GetAllCodesLecturesValidation = {
-    query: z.strictObject({
+    query: z.object({
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
-    }).optional(),
-
-    body: z.strictObject({
         LectureName: z.string().optional(),
         CodeStatus: z.enum(Object.values(CodeStatusEnum), {
             message: 'Invalid CodeStatus. Please select a valid CodeStatus'
         }).optional(),
+        CodeType: z.enum(Object.values(CodeTypeEnum)).default(CodeTypeEnum.Private),
         Code: z.string().optional(),
-        CodeType: z.enum(Object.values(CodeTypeEnum)).default(CodeTypeEnum.Private)
     }).optional(),
 };
 
@@ -141,4 +132,25 @@ export const GeneratePublicCodeValidation = {
 
 
 
+
+export const GetLecturebyCourseNameValidation = {
+    body: z.strictObject({
+        name: z.string()
+    }),
+};
+
+
+
+
+export const Grade_Semester_CourseValidation = {
+    query: z.strictObject({
+        GradeLevel: z.enum(Object.values(GradeLevelEnum), {
+            message: 'Invalid Grade Level. Please select a valid option'
+        }).optional(),
+        Semester: z.enum(Object.values(SemesterEnum), {
+            message: 'Invalid Semester. Please select either First or Second Semester'
+        }).optional(),
+
+    })
+}
 

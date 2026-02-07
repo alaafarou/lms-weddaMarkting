@@ -331,20 +331,6 @@ class CourseService {
     };
 
 
-    Grade_Semester_Course = async (req: Request, res: Response, next: NextFunction) => {
-        const { GradeLevel, Semester } = req.query
-        const Courses = await this.CourseModel.find({
-            filter: {
-                GradeLevel,
-                Semester,
-                Status: StatusEnum.Active
-            },
-            select: "name"
-        });
-        return SuccesResponse({ res, data: Courses });
-    };
-
-
     // perfect test and everything is ok
     FreezeCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
@@ -475,7 +461,6 @@ class CourseService {
         const course = await this.CourseModel.findOneAndDelete({
             filter: {
                 _id: CourseId,
-                Status: StatusEnum.InActive
             },
         })
         if (!course) {
