@@ -10,7 +10,7 @@ export const createLectureValidation = {
             message: 'Invalid Course ID format'
         }),
     }),
-    body: z.object({
+    body: z.strictObject({
         videoUrl: z
             .string()
             .url('Must be a valid URL')
@@ -20,12 +20,8 @@ export const createLectureValidation = {
                     return regex.test(val);
                 },
                 { message: 'Invalid YouTube URL format' }
-            )
-            .transform((url) => {
-                // Extract and return ONLY the video ID
-                const match = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                return match ? match[1] : url;
-            }),
+            ),
+        LectureName: z.string().min(5, "Lecture name must be at least 5 characters").max(100, "Lecture name must not exceed 100 characters"),
     }),
 };
 
@@ -104,9 +100,4 @@ export const LectureParamsValidation = {
 
 
 
-export const GetLecturebyCourseNameValidation = {
-    body: z.strictObject({
-        name: z.string()
-    }),
-};
 

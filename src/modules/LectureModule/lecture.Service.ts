@@ -16,30 +16,9 @@ class lectureService {
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly CodeModel: CodeRepositry = new CodeRepositry(CodeModel)
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
-    
+
 
     constructor() { }
-
-    // private async fetchYouTubeMetadata(videoId: string) {
-    //     const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`;
-
-    //     const response = await fetch(url);
-    //     const data = await response.json();
-
-    //     if (!data.items?.length) {
-    //         throw new Error('Video not found');
-    //     }
-
-    //     const item = data.items[0];
-    //     const durationISO = item.contentDetails.duration; // "PT1H2M30S"
-    //     const durationSeconds = parseISODuration(durationISO);
-
-    //     return {
-    //         LectureName: item.snippet.title,
-    //         description: item.snippet.description,
-    //         durationSeconds,
-    //     };
-    // }
 
     createlecture = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
@@ -69,7 +48,17 @@ class lectureService {
         const { LectureId } = req.params
         const { videoUrl, LectureName } = req.body
 
-        const lecture = await this.LectureModel.findOneAndupdate({
+        const checkLectureName = await this.LectureModel.findOne({
+            filter: {
+                LectureName
+            },
+        })
+        
+        if(checkLectureName){
+            throw new ConflictException("this leacture name already used by in another lecture")
+        }
+
+        const lecture = await this.LectureModel.updateOne({
             filter:
             {
                 _id: LectureId,
@@ -79,18 +68,12 @@ class lectureService {
                 videoUrl,
                 LectureName
             },
-            options: {
-                new: false
-            }
-
         })
         if (!lecture) {
             throw new BadRequestException("sorry this lecture doesnt exists ")
         }
         return SuccesResponse({ res, data: lecture })
     }
-
-
 
     // perfect test and everything is ok
     FreezeLecture = async (req: Request, res: Response, next: NextFunction) => {
@@ -166,13 +149,13 @@ class lectureService {
             filter: {
                 _id: LectureId,
             },
-            options:{
-                populate:[{
-                     path:'viewedBy',
-                     select:'fullname phone parentsPhone'
+            options: {
+                populate: [{
+                    path: 'viewedBy',
+                    select: 'fullname phone parentsPhone'
                 }],
-                lean:true      
-            },     
+                lean: true
+            },
         })
 
         if (!Lecture) {
@@ -182,17 +165,17 @@ class lectureService {
         return SuccesResponse({ res, data: Lecture });
     }
 
-
-
     ActivateLecture = async (req: Request, res: Response, next: NextFunction) => {
         const { LectureId } = req.params
         const { Code } = req.body
+
+        console.log(Code,LectureId)
 
         const checkenrolled = await this.EnrollmentModel.findOne({
             filter: {
                 LectureId: Types.ObjectId.createFromHexString(LectureId!),
                 UserId: req.user?._id,
-                courseId:{$exists:false}
+                courseId: { $exists: false }
             }
         })
 
@@ -229,7 +212,7 @@ class lectureService {
         const code = await this.CodeModel.findOneAndupdate({
             filter: {
                 Code,
-                LectureId: Types.ObjectId.createFromHexString(LectureId!),
+                lectureId: Types.ObjectId.createFromHexString(LectureId!),
                 CodeStatus: CodeStatusEnum.Unused
             },
             update: {
@@ -237,7 +220,6 @@ class lectureService {
                 UsedAt: new Date(),
                 CodeStatus: CodeStatusEnum.Used
             },
-            options: { new: false }
         })
 
         if (!code) {
@@ -263,37 +245,38 @@ class lectureService {
         return SuccesResponse({ res })
     }
 
+    
     playlecture = async (req: Request, res: Response, next: NextFunction) => {
-       const { LectureId , courseId } = req.params
+        const { LectureId, courseId } = req.params
 
-       const [checkEnrollLecture, checkCourseEnroll] = await Promise.all([
+        const [checkEnrollLecture, checkCourseEnroll] = await Promise.all([
 
             await this.EnrollmentModel.findOne({
-                filter:{
+                filter: {
                     LectureId: Types.ObjectId.createFromHexString(LectureId!),
-                    UserId:req.user?._id,
+                    UserId: req.user?._id,
                 }
             }),
 
             await this.EnrollmentModel.findOne({
-                filter:{
+                filter: {
                     courseId: Types.ObjectId.createFromHexString(courseId!),
-                    UserId:req.user?._id,
+                    UserId: req.user?._id,
                 }
             }),
 
-       ])
+        ])
 
-       if(!checkEnrollLecture && !checkCourseEnroll){
-             throw new ConflictException("You are not enrolled in this Lecture or the Course")
-       }
+        if (!checkEnrollLecture && !checkCourseEnroll) {
+            throw new ConflictException("You are not enrolled in this Lecture or the Course")
+        }
 
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
                 _id: LectureId,
             },
-            update:{
-                $addToSet: { viewedByUsers: req.user?._id }   
+            update: {
+                $addToSet: { viewedByUsers: req.user?._id }
             }
         })
 
@@ -305,30 +288,6 @@ class lectureService {
     }
 
 
-     GetLecturebyCourseName = async (req: Request, res: Response, next: NextFunction) => {
-        const { name } = req.body
-
-        const Course = await this.CourseModel.findOne({
-            filter: {
-                name
-            },
-        })
-
-        if(!Course){
-            throw new NotFoundException("No course found matching criteria");
-        }
-
-        const Lecture = await this.LectureModel.find({
-            filter: {
-                CourseId: Course._id,
-            },
-        })
-
-        if (!Lecture) {
-            throw new NotFoundException("No course found matching criteria");
-        }
-
-        return SuccesResponse({ res, data: Lecture });
-    }
+   
 }
 export default new lectureService
