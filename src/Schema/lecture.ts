@@ -4,14 +4,14 @@ import type { HydratedDocument } from "mongoose"
 export interface ILecture {
     LectureName: string;
     CourseId: Types.ObjectId; // ref to Course
-    videoUrl?: string;
+    videoUrl: string;
     SectionId:Types.ObjectId,
    
     viewedBy?: Types.ObjectId[];  // Add this
 
     
-    RestoredAt: Date,
-    RestoredBy: Types.ObjectId;
+    RestoredAt?: Date,
+    RestoredBy?: Types.ObjectId;
 
     DeletedAt: Date,
     DeletedBy: Types.ObjectId;
@@ -21,11 +21,11 @@ export interface ILecture {
 }
 
 export const LectureSchema = new Schema<ILecture>({
-    LectureName: { type: String, maxLength: 255, required: true },
 
-    videoUrl: { type: String, required: true, unique: true },
+    LectureName: { type: String, maxLength: 255, required: true , unique: true},
+
+    videoUrl: { type: String, required: true },
     viewedBy: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
-
 
 
     CourseId:  { type: Schema.Types.ObjectId, ref: "Course", required: true },
