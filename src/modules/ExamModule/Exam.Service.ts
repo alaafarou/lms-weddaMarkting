@@ -400,7 +400,6 @@ class ExamService {
         })
     }
 
-
     DeleteExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
 
@@ -435,54 +434,19 @@ class ExamService {
 
     freezExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
+        const Exam = await this.ExamModel.findOneAndupdate({
+            filter: { _id: ExamID, DeletedAt: { $exists: false } },
+            update: {
+                DeletedAt: new Date(),
+                DeletedBy: req.user?._id,
+                $unset: {
+                    restoredAt: 1,
+                    restoredBy: 1
+                }
+            },
+        })
 
-        const [Submissions, Exam] = await Promise.all(
-            [
-                this.SubmissionModel.updateMany({
-                    filter: {
-                        Exam: Types.ObjectId.createFromHexString(ExamID!)
-                    },
-                    update: {
-                        DeletedAt: new Date(),
-                        DeletedBy: req.user?._id,
-                        $unset: {
-                            restoredAt: 1,
-                            restoredBy: 1
-                        }
-                    },
-                }),
-
-                await this.ExamModel.findOneAndupdate({
-                    filter: { _id: ExamID, DeletedAt: { $exists: false } },
-                    update: {
-                        DeletedAt: new Date(),
-                        DeletedBy: req.user?._id,
-                        $unset: {
-                            restoredAt: 1,
-                            restoredBy: 1
-                        }
-                    },
-                    options: {
-                        new: false
-                    }
-                }),
-
-                this.QuestionModel.updateMany({
-                    filter: {
-                        ExamID: Types.ObjectId.createFromHexString(ExamID!)
-                    },
-                    update: {
-                        DeletedAt: new Date(),
-                        DeletedBy: req.user?._id,
-                        $unset: {
-                            restoredAt: 1,
-                            restoredBy: 1
-                        }
-                    },
-                }),
-            ]
-        )
-        if (!Exam || !Submissions) {
+        if (!Exam) {
             throw new BadRequestException("failed to soft delet Exam")
         }
         return SuccesResponse({ res })
@@ -490,78 +454,24 @@ class ExamService {
 
 
     restoreExame = async (req: Request, res: Response, next: NextFunction) => {
-        const { ExamID, SectionID, CourseId } = req.params
-        const [Section, Course] = await Promise.all([
+        const { ExamID } = req.params
 
-            this.SectionModel.findOne({
-                filter: {
-                    _id: Types.ObjectId.createFromHexString(SectionID!),
-                    DeletedAt: { $exists: false }
-
-                },
-            }),
-            this.CourseModel.findOne({
-                filter: {
-                    _id: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false }
-                },
-            }),
-
-        ])
-        if (!Section || !Course) {
-            throw new ConflictException("Cant Restore this Exam as the its Section or Course are Deleted")
-        }
-
-
-
-        const [Submissions, Exam] = await Promise.all(
-            [
-                this.SubmissionModel.updateMany({
-                    filter: {
-                        Exam: Types.ObjectId.createFromHexString(ExamID!)
-                    },
-                    update: {
-                        restoredAt: new Date(),
-                        restoredBy: req.user?._id,
-                        $unset: {
-                            DeletedAt: 1,
-                            DeletedBy: 1
-                        }
-                    },
-                }),
-
-                await this.ExamModel.findOneAndupdate({
-                    filter: { _id: ExamID, DeletedAt: { $exists: true } },
-                    update: {
-                        restoredAt: new Date(),
-                        restoredBy: req.user?._id,
-                        $unset: {
-                            DeletedAt: 1,
-                            DeletedBy: 1
-                        }
-                    },
-                    options: {
-                        new: false
+        const Exam = await this.ExamModel.findOneAndupdate({
+                filter: { _id: ExamID, DeletedAt: { $exists: true } },
+                update: {
+                    restoredAt: new Date(),
+                    restoredBy: req.user?._id,
+                    $unset: {
+                        DeletedAt: 1,
+                        DeletedBy: 1
                     }
-                }),
+                },
+                options: {
+                    new: false
+                }
+            })
 
-                this.QuestionModel.updateMany({
-                    filter: {
-                        ExamID: Types.ObjectId.createFromHexString(ExamID!)
-                    },
-                    update: {
-                        restoredAt: new Date(),
-                        restoredBy: req.user?._id,
-                        $unset: {
-                            DeletedAt: 1,
-                            DeletedBy: 1
-                        }
-                    },
-                }),
-            ]
-        )
-
-        if (!Exam || !Submissions) {
+        if (!Exam) {
             throw new BadRequestException("failed to restore Exam")
         }
         return SuccesResponse({ res })
