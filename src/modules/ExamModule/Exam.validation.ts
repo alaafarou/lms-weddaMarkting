@@ -89,9 +89,9 @@ export const AddQuestionValidation = {
     }).superRefine((data, ctx) => {
         if (
             data.type === questionEnum.multiple_choice
-                &&
+            &&
             data.Answers
-                &&
+            &&
             !data.Answers.includes(data.correctAnswer)) {
             ctx.addIssue({
                 code: "custom",
@@ -102,7 +102,7 @@ export const AddQuestionValidation = {
 
         if (
             data.type === questionEnum.true_false
-                &&
+            &&
             !["false", "true"].includes(data.correctAnswer)
         ) {
             ctx.addIssue({
@@ -154,3 +154,36 @@ export const DeleteExamValidation = {
         }, "Invalid Question ID"),
     })
 }
+
+
+export const UpdateExamValidation = {
+    params: z.strictObject({
+        SectionID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid SectionID"),
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    }),
+    body: z.strictObject({
+        name: z.string()
+            .min(5, "name must not be less than 5")
+            .max(100, "name must not exceed 100")
+            .optional(),
+
+        Duration: z.coerce.number()
+            .min(1, "Duration must be at least 1 minute")
+            .optional(),
+    }).superRefine((data, ctx) => {
+        console.log(data)
+        const check = Object.values(data)
+        if (!check.length) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["body"],
+                message: "all of fields in body are empty"
+            })
+        }
+    })
+}
+

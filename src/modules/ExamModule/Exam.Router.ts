@@ -3,8 +3,9 @@ import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
 import ExamService from "./Exam.Service";
-import { AddQuestionValidation, CreateExamValidation, DeleteExamValidation, ExamparamValidation } from "./Exam.validation";
+import { AddQuestionValidation, CreateExamValidation, DeleteExamValidation, ExamparamValidation, UpdateExamValidation } from "./Exam.validation";
 import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cloud.multer";
+import { UpdateCourseValidation } from "../CourseModule/CourseValidaton";
 
 
 
@@ -116,7 +117,13 @@ ExamRouter.post("/",
 ExamRouter.get("/:ExamID", 
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(ExamparamValidation),
-    ExamService.GetExamQuestions
+    ExamService.GetExam
+)
+ 
+ExamRouter.patch("/:ExamID", 
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(UpdateExamValidation),
+    ExamService.UpdateExam
 )
 
 ExamRouter.delete("/:ExamID",

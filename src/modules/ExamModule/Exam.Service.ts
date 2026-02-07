@@ -87,6 +87,25 @@ class ExamService {
         return SuccesResponse({ res, data: Exam })
     }
 
+    UpdateExam = async (req: Request, res: Response, next: NextFunction) => {
+        const { ExamID } = req.params
+        const { name, Duration } = req.body
+        const Exam = await this.ExamModel.findOneAndupdate({
+            filter: {
+                _id: ExamID,
+            },
+            update: {
+                name,
+                Duration
+            }
+        })
+
+        if (!Exam) {
+            throw new BadRequestException("failed to update Exam please try later ")
+        }
+        return SuccesResponse({ res, data: Exam })
+    }
+
     AddQuestions = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
         const file = req.file as IMultter;
@@ -136,24 +155,27 @@ class ExamService {
         return SuccesResponse({ res })
     }
 
-    GetExamQuestions = async (req: Request, res: Response, next: NextFunction) => { 
+    GetExam = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
 
         const Exam = await this.ExamModel.findOne({
             filter: {
                 _id: ExamID
             },
-            options:{
-                populate: [{    
-                    path: "questions",
-                    select: "question image correctAnswer type Answers Score "
-                }]
+
+        })
+        const Questions = await this.QuestionModel.find({
+            filter: {
+                ExamID: Types.ObjectId.createFromHexString(ExamID!)
+            },
+            options: {
+                sort: { createdAt: 1 },
             }
         })
-        return SuccesResponse({ res, data: Exam })
+        return SuccesResponse({ res, data: { Exam, Questions } })
     }
 
-    
+
     startExam = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId, ExamID } = req.params
 
@@ -229,15 +251,15 @@ class ExamService {
                 this.QuestionModel.find({
                     filter: {
                         ExamID: Types.ObjectId.createFromHexString(ExamID!)
-                    },options:{
-                        sort: {createdAt:1},
-                        lean:true
+                    }, options: {
+                        sort: { createdAt: 1 },
+                        lean: true
                     },
                 })
 
             ]
         )
-        if(Submission?.IsSubmited === true){
+        if (Submission?.IsSubmited === true) {
             throw new ConflictException("this Exam is already submited")
         }
 
@@ -282,7 +304,7 @@ class ExamService {
                 Ispassed,
                 Answers,
                 IsSubmited: true,
-                
+
             }
         })
 
@@ -410,7 +432,7 @@ class ExamService {
         return SuccesResponse({ res })
     }
 
-    
+
     freezExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
 
