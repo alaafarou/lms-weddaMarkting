@@ -164,6 +164,9 @@ export const UpdateExamValidation = {
         CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid Course ID format'
         }),
+        ExamID: z.string().refine((id) => {
+            return Types.ObjectId.isValid(id);
+        }, "Invalid Exam ID"),
     }),
     body: z.strictObject({
         name: z.string()
