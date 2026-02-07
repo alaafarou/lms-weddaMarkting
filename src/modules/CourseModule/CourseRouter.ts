@@ -58,6 +58,10 @@ CourseRouter.delete("/RemoveStudent/:CourseId",
 
 
 
+CourseRouter.get("/CourseStudents/:CourseId",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(getCoursestudentsValidation), CourseService.GetCourseStudents)
+
 
 
 CourseRouter.delete("/freeze/:CourseId",
