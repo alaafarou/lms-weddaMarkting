@@ -67,15 +67,12 @@ OtpSchema.pre("save", async function (this: OtpHydratedDocument & { wasnew: bool
   if (this.isModified("code")) {
     if (this.type !== OtpEnum.OpenCourse) {
       this.otpcode = this.code
-      console.log(`otp is: ${this.code}`)
       this.code = await GenerateHash({ plaintext: this.code })
       await this.populate([{ path: "createdBy", select: "email" }])
     }
     else {
       this.otpcode = this.code
       this.otpType = this.type
-      console.log(this.otpcode)
-      console.log(this.otpType)
       this.code = await GenerateHash({ plaintext: this.code })
       await this.populate([{ path: "student", select: "email" }])
     }

@@ -150,7 +150,6 @@ export const Grade_Semester_CourseValidation = {
         Semester: z.enum(Object.values(SemesterEnum), {
             message: 'Invalid Semester. Please select either First or Second Semester'
         }).optional(),
-
     })
 }
 

@@ -32,7 +32,7 @@ const CodeSchema = new Schema<ICode>({
     lectureId:{ type: Schema.Types.ObjectId, ref: "Lecture" },
     Code: { type: String, required: true },
     Usedby: { type: Schema.Types.ObjectId, ref: "User" },
-    CourseId: { type: Schema.Types.ObjectId, ref: "Course",  },
+    CourseId: { type: Schema.Types.ObjectId, ref: "Course"},
     CodeStatus: {
         type: String,
         enum: CodeStatusEnum,
