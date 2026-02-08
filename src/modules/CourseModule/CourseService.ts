@@ -121,7 +121,7 @@ class CourseService {
     GetCourseStudents = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { email, fullname } = req.query
+        const { email , fullname } = req.query
         let userIdsFilter: any = []
 
         if (email || fullname) {
@@ -152,7 +152,7 @@ class CourseService {
             options: {
                 populate: [{
                     path: "UserId",
-                    select: "email fullname phone"
+                    select: "email fullname phone Gradelevel status"
                 }]
             }
         })
@@ -160,6 +160,7 @@ class CourseService {
         if (!students) {
             throw new NotFoundException("No course found matching criteria");
         }
+
 
         return SuccesResponse({ res, data: students });
     }
@@ -277,7 +278,7 @@ class CourseService {
         })
 
         if (!user) {
-            throw new NotFoundException("sorry this account not created or its admin account")
+            throw new NotFoundException("sorry this account you try to add is admin or doesnt existe")
         }
 
 
