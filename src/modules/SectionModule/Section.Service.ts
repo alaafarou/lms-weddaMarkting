@@ -76,7 +76,6 @@ class SectionService {
         const section = await this.SectionModel.findOneAndDelete({
             filter: {
                 _id: SectionID,
-                DeletedAt: { $exists: true }
             },
         })
         if(!section){
