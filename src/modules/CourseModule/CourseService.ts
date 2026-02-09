@@ -311,8 +311,7 @@ class CourseService {
 
 
     DeleteStudent = async (req: Request, res: Response, next: NextFunction) => {
-        const { CourseId } = req.params
-        const { StudentID } = req.body
+        const { CourseId,StudentID } = req.params
 
         const CheckCourse = await this.EnrollmentModel.findOneAndDelete({
             filter: {

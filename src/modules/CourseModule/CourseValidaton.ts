@@ -73,8 +73,6 @@ export const checkCourseParam = {
         CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid Course ID format'
         }),
-    }),
-    body: z.strictObject({
         StudentID: z.string().refine((val) => Types.ObjectId.isValid(val), {
             message: 'Invalid StudentID  format'
         }),

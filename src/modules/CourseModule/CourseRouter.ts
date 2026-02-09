@@ -52,7 +52,7 @@ CourseRouter.post("/AddStudent/:CourseId",
 
 
 
-CourseRouter.delete("/RemoveStudent/:CourseId",
+CourseRouter.delete("/RemoveStudent/:CourseId/:StudentID",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(checkCourseParam), CourseService.DeleteStudent)
 
