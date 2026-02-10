@@ -1,10 +1,6 @@
 import { HydratedDocument, model, Schema, Types } from "mongoose";
-import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from "../modules/Utilis/Enums/courses";
+import { GradeLevelEnum, SemesterEnum, StatusEnum, SubjectsEnum } from "../modules/Utilis/Enums/courses";
 
-export  enum StatusEnum{
-    Active="Active",
-    InActive="InActive"
-}
 
 
 export interface ICourse {

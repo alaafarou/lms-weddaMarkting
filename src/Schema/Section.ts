@@ -1,9 +1,7 @@
 import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { StatusEnum } from "../modules/Utilis/Enums/courses";
 
-export enum StatusEnum {
-    Active = "Active",
-    InActive = "InActive"
-}
+
 
 export interface ISection {
 

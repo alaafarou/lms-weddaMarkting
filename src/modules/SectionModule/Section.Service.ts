@@ -4,12 +4,13 @@ import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { Types } from "mongoose"
-import { CourseModel, StatusEnum } from "../../Schema/Course"
+import { CourseModel } from "../../Schema/Course"
 import { SectionModel } from "../../Schema/Section"
 import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
 import { ExamModule } from "../../Schema/Exam"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
+import { StatusEnum } from "../Utilis/Enums/courses"
 
 
 

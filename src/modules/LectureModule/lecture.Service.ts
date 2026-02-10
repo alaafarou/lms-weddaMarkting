@@ -10,6 +10,7 @@ import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo";
 import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code";
 import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory";
 import { CourseModel } from "../../Schema/Course";
+import { StatusEnum } from "../Utilis/Enums/courses";
 
 class lectureService {
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
@@ -81,14 +82,11 @@ class lectureService {
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
                 _id: LectureId,
+                Status:StatusEnum.Active
+
             },
             update: {
-                DeletedAt: new Date(),
-                DeletedBy: req.user?._id,
-                $unset: {
-                    RestoredAt: 1,
-                    RestoredBy: 1
-                },
+                Status:StatusEnum.InActive
             },
             options: { new: false }
         })
@@ -106,22 +104,17 @@ class lectureService {
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
                 _id: LectureId,
-                DeletedAt: { $exists: true },
+                Status:StatusEnum.InActive
             },
             update: {
-                RestoredAt: Date.now(),
-                RestoredBy: req.user?._id,
-                $unset: {
-                    DeletedAt: 1,
-                    DeletedBy: 1,
-                },
+                Status:StatusEnum.Active
             },
             options: { new: false }
         })
         if (!Lecture) {
             throw new BadRequestException("sorry failed to Restore the lecture check if its already deleted")
         }
-        return SuccesResponse({ res, });
+        return SuccesResponse({ res });
     }
 
     // perfect test and everything is ok
@@ -131,7 +124,6 @@ class lectureService {
         const Lecture = await this.LectureModel.findOneAndDelete({
             filter: {
                 _id: LectureId,
-                DeletedAt: { $exists: true },
             },
         })
         if (!Lecture) {

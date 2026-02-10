@@ -45,3 +45,9 @@ export enum CountryEnum{
   Egypt="egypt",
   Oman="oman",
 }
+
+
+export enum StatusEnum {
+    Active = "Active",
+    InActive = "InActive"
+}

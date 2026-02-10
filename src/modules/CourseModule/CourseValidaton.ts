@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { z } from 'zod';
-import { GradeLevelEnum, SemesterEnum, SubjectsEnum } from '../Utilis/Enums/courses';
-import { StatusEnum } from '../../Schema/Course';
+import { GradeLevelEnum, SemesterEnum, StatusEnum, SubjectsEnum } from '../Utilis/Enums/courses';
+
 
 export const CreateCourseValidation = {
     body: z.strictObject({
