@@ -1,5 +1,9 @@
-import  { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
 
+export enum StatusEnum {
+    Active = "Active",
+    InActive = "InActive"
+}
 
 export interface ISection {
 
@@ -10,14 +14,7 @@ export interface ISection {
     CreatedBy?: Types.ObjectId,
     CreatedAt?: Date,
 
-    UpdatedAt?: Date,
-    UpdatedBy?: Types.ObjectId,
-
-    DeletedAt?: Date,
-    DeletedBy?: Types.ObjectId,
-
-    RestoredAt?: Date,
-    RestoredBy?: Types.ObjectId,
+    Status: StatusEnum
 
 }
 
@@ -33,17 +30,17 @@ export const SectionSchema = new Schema<ISection>({
 
     courseId: { type: Schema.Types.ObjectId, ref: "Course" },
 
-    CreatedAt:Date,
+    CreatedAt: Date,
     CreatedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
-    UpdatedAt: Date,
-    UpdatedBy: { type: Schema.Types.ObjectId, ref: "User" },
+   
+    Status: {
+        type: String,
+        enum: StatusEnum,
+        required: true,
+        default: StatusEnum.Active
+    },
 
-    DeletedAt:Date,
-    DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
-
-    RestoredAt: Date,
-    RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 
 
 }, { timestamps: true })
@@ -52,4 +49,4 @@ export const SectionSchema = new Schema<ISection>({
 
 
 export type SectionHydareatedDocument = HydratedDocument<ISection>
-export const SectionModel = model<ISection>("Section",SectionSchema)
+export const SectionModel = model<ISection>("Section", SectionSchema)

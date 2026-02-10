@@ -4,12 +4,13 @@ import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { Types } from "mongoose"
-import { CourseModel } from "../../Schema/Course"
+import { CourseModel, StatusEnum } from "../../Schema/Course"
 import { SectionModel } from "../../Schema/Section"
 import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
 import { ExamModule } from "../../Schema/Exam"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
+
 
 
 class SectionService {
@@ -18,6 +19,7 @@ class SectionService {
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
+  
 
     constructor() { }
 
@@ -92,7 +94,7 @@ class SectionService {
                 filter: {
                     SectionID:SectionId
                 },              
-            })
+            }),
         ])
 
         if (!lectures || !exams) {
@@ -107,57 +109,16 @@ class SectionService {
         const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                DeletedAt: { $exists: false },
-                courseId: CourseId
+                courseId: CourseId,
+                Status:StatusEnum.Active
             },
             update: {
-                DeletedAt: new Date(),
-                DeletedBy: req.user?._id,
-                $unset: {
-                    RestoredAt: 1,
-                    RestoredBy: 1
-                }
+                Status:StatusEnum.InActive
             },
         })
 
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
-        }
-
-        const [lectures, exams] = await Promise.all([
-            await this.LectureModel.updateMany({
-                filter: {
-                    SectionId: section._id,
-                    DeletedAt: { $exists: false },
-                },
-                update: {
-                    DeletedAt: new Date(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    }
-
-                }
-            }),
-            await this.ExamModel.updateMany({
-                filter: {
-                    SectionID: section._id,
-                    DeletedAt: { $exists: false },
-                },
-                update: {
-                    DeletedAt: new Date(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        restoredAt: 1,
-                        restoredBy: 1
-                    }
-
-                }
-            })
-        ])
-        if (!lectures || !exams) {
-            throw new BadRequestException("sorry failed to freeze the lectures and exams of the section ")
         }
 
         return SuccesResponse({ res })
@@ -169,55 +130,14 @@ class SectionService {
         const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                DeletedAt:{$exists:true}
+                Status:StatusEnum.InActive
             },
             update: {
-                RestoredAt: new Date(),
-                RestoredBy: req.user?._id,
-                $unset: {
-                    DeletedAt: 1,
-                    DeletedBy: 1
-                }
+                Status:StatusEnum.Active
             },
         })
         if (!section) {
             throw new BadRequestException("sorry failed to restore the section ")
-        }
-
-        const [lectures, exams] = await Promise.all([
-            await this.LectureModel.updateMany({
-                filter: {
-                    SectionId: section._id,
-                    DeletedAt: { $exists: true },
-                },
-                update: {
-                    RestoredAt: new Date(),
-                    RestoredBy: req.user?._id,
-                    $unset: {
-                        DeletedAt: 1,
-                        DeletedBy: 1
-                    }
-
-                }
-            }),
-            await this.ExamModel.updateMany({
-                filter: {
-                    SectionID: section._id,
-                    DeletedAt: { $exists: true },
-                },
-                update: {
-                    restoredAt: new Date(),
-                    restoredBy: req.user?._id,
-                    $unset: {
-                        DeletedAt: 1,
-                        DeletedBy: 1
-                    }
-
-                }
-            })
-        ])
-        if (!lectures || !exams) {
-            throw new BadRequestException("sorry failed to restore the lectures and exams of the section ")
         }
         return SuccesResponse({ res })
     }
