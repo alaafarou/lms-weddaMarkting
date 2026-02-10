@@ -17,6 +17,7 @@ import { EnrollmentModel } from "../../Schema/Enrollment";
 import { IMultter } from "../Utilis/multer/cloud.multer";
 import { QuestionHydratedDocument, QuestionModel } from "../../Schema/Questions";
 import { QuestionRepositry } from "../Utilis/DatabasePattern/QuestionsReposatry";
+import { StatusEnum } from "../Utilis/Enums/courses";
 
 
 
@@ -41,7 +42,7 @@ class ExamService {
     CreateExam = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
         const { name, Duration, questions } = req.body
-        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID, DeletedAt: { $exists: false } } })
+        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID, Status:StatusEnum.Active } })
         const files = req.files as IMultter[];
         if (!checkSection) {
             throw new BadRequestException("invalid Section")
@@ -112,7 +113,6 @@ class ExamService {
         const checkExam = await this.ExamModel.findOne({
             filter: {
                 _id: ExamID,
-                DeletedAt: { $exists: false }
             }
         })
 
@@ -377,7 +377,6 @@ class ExamService {
 
         const Exams = await this.ExamModel.find({
             filter: {
-                DeletedAt: { $exists: false },
                 CourseID: { $in: CourseId }
             }
         })
@@ -414,7 +413,6 @@ class ExamService {
                 this.ExamModel.findOneAndDelete({
                     filter: {
                         _id: ExamID,
-                        DeletedAt: { $exists: true }
                     }
                 }),
                 this.QuestionModel.deleteMany({
@@ -435,14 +433,9 @@ class ExamService {
     freezExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
         const Exam = await this.ExamModel.findOneAndupdate({
-            filter: { _id: ExamID, DeletedAt: { $exists: false } },
+            filter: { _id: ExamID, Status: StatusEnum.Active },
             update: {
-                DeletedAt: new Date(),
-                DeletedBy: req.user?._id,
-                $unset: {
-                    restoredAt: 1,
-                    restoredBy: 1
-                }
+                Status: StatusEnum.InActive
             },
         })
 
@@ -457,19 +450,17 @@ class ExamService {
         const { ExamID } = req.params
 
         const Exam = await this.ExamModel.findOneAndupdate({
-                filter: { _id: ExamID, DeletedAt: { $exists: true } },
-                update: {
-                    restoredAt: new Date(),
-                    restoredBy: req.user?._id,
-                    $unset: {
-                        DeletedAt: 1,
-                        DeletedBy: 1
-                    }
-                },
-                options: {
-                    new: false
-                }
-            })
+            filter: {
+                _id: ExamID, Status: StatusEnum.InActive
+            },
+            update: {
+                Status: StatusEnum.Active
+
+            },
+            options: {
+                new: false
+            }
+        })
 
         if (!Exam) {
             throw new BadRequestException("failed to restore Exam")

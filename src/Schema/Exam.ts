@@ -1,5 +1,6 @@
 
 import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { StatusEnum } from "../modules/Utilis/Enums/courses";
 
 
 
@@ -18,12 +19,8 @@ export interface IExam {
     UpdatedAt: Date,
     UpdatedBy: Types.ObjectId
 
-    restoredAt: Date,
-    restoredBy: Types.ObjectId,
-
-    DeletedAt: Date,
-    DeletedBy: Types.ObjectId,
-
+    Status: StatusEnum
+        
     Duration: number
 
 
@@ -47,20 +44,22 @@ export const ExamSchema = new Schema<IExam>({
 
     UpdatedBy: { type: Schema.Types.ObjectId, ref: "User" },
 
-    DeletedAt: Date,
-    DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
 
-
-    restoredAt: Date,
-    restoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 
     Duration: {
         type: Number,
         default: 5 * 60,
         required: true
-    }
+    },
 
-},{
+     Status: {
+        type: String,
+        enum: StatusEnum,
+        required: true,
+        default: StatusEnum.Active
+    },
+
+}, {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
