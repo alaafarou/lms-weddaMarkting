@@ -117,7 +117,6 @@ class SectionService {
                 Status:StatusEnum.InActive
             },
         })
-
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }

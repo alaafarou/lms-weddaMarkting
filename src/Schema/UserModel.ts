@@ -1,8 +1,8 @@
 import { HydratedDocument, Schema, Types, model } from 'mongoose';
 import { GenerateHash } from '../modules/Utilis/Security/hash';
-import { ICourse, StatusEnum } from './Course';
+import { ICourse} from './Course';
 import { IOtp } from './OtpModel';
-import { CountryEnum, GradeLevelEnum, StudentEnum } from '../modules/Utilis/Enums/courses';
+import { CountryEnum, GradeLevelEnum, StatusEnum, StudentEnum } from '../modules/Utilis/Enums/courses';
 import { string } from 'zod';
 
 export enum genderEnum {

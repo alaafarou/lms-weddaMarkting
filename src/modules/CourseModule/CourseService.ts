@@ -3,7 +3,8 @@ import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { IMultter } from "../Utilis/multer/cloud.multer"
-import { CourseModel, StatusEnum } from "../../Schema/Course"
+import { CourseModel  } from "../../Schema/Course"
+
 import { Types } from "mongoose"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { SectionModel } from "../../Schema/Section"
@@ -17,6 +18,7 @@ import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo"
 import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
 import { roleEnum, UserModel } from "../../Schema/UserModel"
+import { StatusEnum } from "../Utilis/Enums/courses"
 
 class CourseService {
 

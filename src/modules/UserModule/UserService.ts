@@ -13,7 +13,7 @@ import { EnrollmentModel } from "../../Schema/Enrollment";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { SubmissionModel } from "../../Schema/Submition";
 import { Types } from "mongoose";
-import { StatusEnum } from "../../Schema/Course";
+import { StatusEnum } from "../Utilis/Enums/courses";
 
 class UserService {
 
@@ -23,7 +23,6 @@ class UserService {
 
 
     constructor() { }
-
 
     profile = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         return SuccesResponse<UserResponse>({ res, data: { user: req.user! } })
@@ -42,7 +41,6 @@ class UserService {
         })
         return SuccesResponse({ res, data: Admins })
     }
-
 
     GetAllUsers = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number }
@@ -149,7 +147,6 @@ class UserService {
 
         return SuccesResponse({ res, statuscode })
     }
-
 
     RestoreUser = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         const { UserId } = req.params;
