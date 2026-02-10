@@ -49,7 +49,6 @@ class CourseService {
                 ...req.body,
                 image: file?.finalpath,
                 CreatedBy: req.user?._id!,
-                DeletedAt: new Date(),
                 Status,
             }
 
@@ -342,13 +341,8 @@ class CourseService {
                 Status: StatusEnum.Active,
             },
             update: {
-                DeletedAt: new Date(),
                 Status: StatusEnum.InActive,
-                DeletedBy: req.user?._id,
-                $unset: {
-                    RestoredAt: 1,
-                    RestoredBy: 1
-                },
+               
             },
             options: { new: false }
         })
@@ -356,72 +350,6 @@ class CourseService {
             throw new NotFoundException("sorry failed to Delete the course as it must be in IActive status")
         }
 
-        await Promise.all([
-
-            this.SectionModel.updateMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
-
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    },
-                }
-            }),
-
-
-            this.EnrollmentModel.updateMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
-
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    },
-                }
-            }),
-
-            this.ExamModel.updateMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
-
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        restoredAt: 1,
-                        restoredBy: 1
-                    },
-                }
-            }),
-
-            this.LectureModel.updateMany({
-                filter: {
-                    course: Types.ObjectId.createFromHexString(CourseId!),
-                    DeletedAt: { $exists: false },
-                },
-                update: {
-                    DeletedAt: Date.now(),
-                    DeletedBy: req.user?._id,
-                    $unset: {
-                        RestoredAt: 1,
-                        RestoredBy: 1
-                    },
-                }
-            }),
-        ])
         return SuccesResponse({ res, statuscode: 200 });
     }
 
@@ -436,13 +364,7 @@ class CourseService {
                 Status: StatusEnum.InActive
             },
             update: {
-                RestoredAt: Date.now(),
-                RestoredBy: req.user?._id,
                 Status: StatusEnum.Active,
-                $unset: {
-                    DeletedAt: 1,
-                    DeletedBy: 1,
-                },
             },
             options: { new: false }
         })

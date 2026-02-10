@@ -63,7 +63,6 @@ class lectureService {
             filter:
             {
                 _id: LectureId,
-                DeletedAt: { $exists: false }
             },
             update: {
                 videoUrl,

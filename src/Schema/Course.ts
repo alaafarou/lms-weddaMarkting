@@ -21,12 +21,8 @@ export interface ICourse {
 
     UpdatedBy: Types.ObjectId,
 
-    DeletedAt: Date,
     Status:StatusEnum,
-    DeletedBy: Types.ObjectId
 
-    RestoredAt: Date,
-    RestoredBy: Types.ObjectId,
 
 
 }
@@ -74,8 +70,7 @@ const CourseSchema = new Schema<ICourse>({
         enum: SubjectsEnum,
     },
 
-    DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
-    DeletedAt: Date,
+ 
     Status:{
         type: String,
         enum: StatusEnum,
@@ -85,8 +80,6 @@ const CourseSchema = new Schema<ICourse>({
 
    
 
-    RestoredBy: { type: Schema.Types.ObjectId, ref: "User" },
-    RestoredAt: Date,
 
 
 }, { timestamps: true })
