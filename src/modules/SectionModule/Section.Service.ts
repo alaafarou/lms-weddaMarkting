@@ -171,13 +171,13 @@ class SectionService {
                 options: {
                     lean: true
                 },
-                select: "LectureName"
+                select: "LectureName Status"
             }),
             await this.ExamModel.find({
                 filter: {
                     SectionID: section._id,
                 },
-                select: "name",
+                select: "name Status",
                 options: {
                     lean: true
                 }
