@@ -148,7 +148,6 @@ class SectionService {
         const checkCourse = await this.CourseModel.findOne({
             filter: {
                 _id: req.params.CourseId,
-                DeletedAt: { $exists: false }
             }
         })
         if (!checkCourse) {
@@ -158,7 +157,6 @@ class SectionService {
             filter: {
                 _id: SectionID,
                 courseId: CourseId,
-                DeletedAt: { $exists: false }
             }
         })
         if (!section) {
@@ -194,7 +192,6 @@ class SectionService {
         const sections = await this.SectionModel.find({
             filter: {
                 courseId: CourseId,
-                DeletedAt: { $exists: false }
             }
 
         })
