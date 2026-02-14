@@ -161,7 +161,6 @@ UserRouter.get("/",
  *       '403':
  *         description: Forbidden - User role required
  */
-
 UserRouter.get("MyCourses",
     Authorization({ AcessRoles: [roleEnum.user] }),
     UserService.MyCourses)
@@ -209,8 +208,6 @@ UserRouter.post("/logout",
     validation(logoutValidation),
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     UserService.logout)
-
-
 
 
 /**
@@ -287,9 +284,6 @@ UserRouter.patch("/updatepassword",
     validation(updatepasswordValidaton),
     Authorization({ AcessRoles: [roleEnum.user] }),
     UserService.updatepassword)
-
-
-
 
 
 /**
@@ -372,14 +366,10 @@ UserRouter.get("/Acesstoken",Authorization({
  *       '404':
  *         description: User not found or already deleted
  */
-
 UserRouter.patch("/freezeUser{/:id}",
     validation(freezeUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.freezeUser)
-
-
-
 
 
 /**
@@ -428,7 +418,6 @@ UserRouter.patch("/DeleteUser{/:id}",
     UserService.DeleteUser)
 
 
-
  /**
  * @openapi
  * /users/restoreUser/:UserId:
@@ -473,13 +462,14 @@ UserRouter.patch("/restoreUser{/:id}",
     UserService.RestoreUser)
 
 
+
 UserRouter.get("/admins",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.GetAllAdmins
 )
 
 
-UserRouter.get("/all",
+UserRouter.get("/students",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(GetAllUsersValidation),
     UserService.GetAllUsers

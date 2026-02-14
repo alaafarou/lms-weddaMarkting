@@ -54,7 +54,7 @@ class UserService {
         if (status) query.status = status;
 
         const Users = await this.UserModel.paginate({
-            filter: query,
+            filter: {...query,role:roleEnum.user},
             page,
             size,
         });
