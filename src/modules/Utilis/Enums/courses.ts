@@ -7,10 +7,13 @@ export enum GradeLevelEnum {
   THIRD_SECONDARY = 'Third Secondary'
 }
 
+
+
 export enum SemesterEnum {
   FIRST_SEMESTER = 'First Semester',
   SECOND_SEMESTER = 'Second Semester'
 }
+
 
 
 export enum SubjectsEnum {
@@ -29,10 +32,12 @@ export enum SubjectsEnum {
 }
 
 
+
 export enum questionEnum {
      multiple_choice="multiple_choice",
      true_false="true_false"
 }
+
 
 
 export enum StudentEnum{
