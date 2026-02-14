@@ -382,7 +382,7 @@ class CodeService {
 
 
     GetLecturebyCourseName = async (req: Request, res: Response, next: NextFunction) => {
-        const { name } = req.body
+        const { name } = req.query
 
         const Course = await this.CourseModel.findOne({
             filter: {
