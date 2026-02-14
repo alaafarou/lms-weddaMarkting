@@ -85,7 +85,12 @@ export const AddQuestionValidation = {
         type: z.enum(Object.values(questionEnum)),
         Answers: z.array(z.string()).optional(),
         Score: z.coerce.number().min(0, 'Score must be positive').optional(),
-        correctAnswer: z.string().min(1, "Correct answer required"),
+        correctAnswer: z.string().min(1, "Correct answer required"), 
+        image: z.object({
+            mimetype: z.string(),
+            size: z.number(),
+            path: z.string(),
+        }).optional(),
     }).superRefine((data, ctx) => {
         if (
             data.type === questionEnum.multiple_choice

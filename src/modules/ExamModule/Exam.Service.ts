@@ -42,7 +42,7 @@ class ExamService {
     CreateExam = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
         const { name, Duration, questions } = req.body
-        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID, Status:StatusEnum.Active } })
+        const checkSection = await this.SectionModel.findOne({ filter: { _id: SectionID } })
         const files = req.files as IMultter[];
         if (!checkSection) {
             throw new BadRequestException("invalid Section")
