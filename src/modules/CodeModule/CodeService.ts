@@ -4,13 +4,14 @@ import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, ConflictException, NotFoundException, } from "../Utilis/response/ErrorResponse"
 import { createOtpNumber } from "../Utilis/emial/RandomOtp"
-import { CourseModel, StatusEnum } from "../../Schema/Course"
+import { CourseModel } from "../../Schema/Course"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
 import { UserModel } from "../../Schema/UserModel"
 import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo"
 import { CodeModel, CodeTypeEnum } from "../../Schema/Code"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
+import { StatusEnum } from "../Utilis/Enums/courses"
 
 class CodeService {
 
