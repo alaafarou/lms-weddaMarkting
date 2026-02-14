@@ -3,6 +3,7 @@ import { logoutEnum } from "../Utilis/Security/security";
 import { Types } from "mongoose";
 import { roleEnum } from "../../Schema/UserModel";
 import { GradeLevelEnum, StudentEnum } from "../Utilis/Enums/courses";
+import { Query } from "tsoa";
 
 
 export const updatepasswordValidaton = {
@@ -77,7 +78,7 @@ export const DeleteUserValidation ={
 
 
 export const GetAllUsersValidation = {
-    body: z.strictObject({
+    query: z.strictObject({
         fullname: z.string().optional(),
 
         email: z.email("Invalid email format").optional(),
