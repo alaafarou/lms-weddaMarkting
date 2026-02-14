@@ -134,7 +134,7 @@ export const GeneratePublicCodeValidation = {
 
 
 export const GetLecturebyCourseNameValidation = {
-    body: z.strictObject({
+    query: z.strictObject({
         name: z.string()
     }),
 };
