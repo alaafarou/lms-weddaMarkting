@@ -90,7 +90,7 @@ export const GetAllUsersValidation = {
         StudentType: z.enum(Object.values(StudentEnum)).optional(),
 
         
-        phone: z.string()
+        phone: z.string().optional()
 
     }).optional()
 }
