@@ -44,7 +44,7 @@ class UserService {
 
     GetAllUsers = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { fullname, email, phone , GradeLevel, status } = req.body
+        const { fullname, email, phone , GradeLevel, status } = req.query
         const query: any = {};
 
         if (fullname) query.fullname = { $regex: fullname, $options: "i" };
