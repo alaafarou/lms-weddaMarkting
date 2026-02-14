@@ -7,7 +7,6 @@ import { config } from "dotenv"
 import { DBconnection } from "./modules/Utilis/DBconnection"
 import { GlobalError } from "./modules/Utilis/response/ErrorResponse"
 import CourseRouter from "./modules/CourseModule/CourseRouter"
-import { SwaggerDocs } from "./Swagger"
 import ExamService from "./modules/ExamModule/Exam.Service"
 import { validation } from "./modules/middlwares/validation.middleware"
 import { StudentStatusVlaidation } from "./modules/ExamModule/Exam.validation"
@@ -46,7 +45,6 @@ const bootsrap = async () => {
 
     app.listen(process.env.PORT, () => {
         console.log(`the application is running on port ${process.env.PORT}`)
-        SwaggerDocs(app, Number(process.env.PORT))
     })
 
 }
