@@ -31,9 +31,11 @@ export const localFileUpload = ({
     folder?: string
     fileSize?: number
 }) => {
-    let basepath = `./upload/${folder}`
     const storage = multer.diskStorage({
+
         destination: function (req, file: Express.Multer.File, callback) {
+            let basepath = `upload/${folder}`
+
             if (req.user?._id ){
                 basepath += `/${req.user?.id}`
             }
@@ -44,6 +46,10 @@ export const localFileUpload = ({
             callback(null, fullpath)
         },
         filename: function (req: Request, file: IMultter, callback) {
+            let basepath = `upload/${folder}`
+            if (req.user?._id ){
+                basepath += `/${req.user?.id}`
+            }
             const fileName = Date.now() + '-' + Math.round(Math.random()) + "-" + file.originalname
             file.finalpath = `${basepath}/${fileName}`
             callback(null, fileName)
