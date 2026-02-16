@@ -142,6 +142,18 @@ export const ActivateCodeValidation = {
 
 
 
+export const ActivatefreeCourseValidation = {
+    params: z.strictObject({
+        CourseId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            message: 'Invalid Course ID format'
+        }),
+    }),
+};
+
+
+
+
+
 
 export const GenerateCodeValidation = {
     body: z.strictObject({

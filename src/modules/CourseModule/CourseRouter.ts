@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validation } from "../middlwares/validation.middleware";
-import { ActivateCodeValidation, AddStudentValidation, checkCourseParam, CourseParamValidation, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, UpdateCourseValidation } from "./CourseValidaton";
+import { ActivateCodeValidation, ActivatefreeCourseValidation, AddStudentValidation, checkCourseParam, CourseParamValidation, CreateCourseValidation, GetAllCoursesValidation, getCoursestudentsValidation, getcourseValidation, UpdateCourseValidation } from "./CourseValidaton";
 import CourseService from "./CourseService";
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
@@ -43,6 +43,11 @@ CourseRouter.get("/students/:CourseId",
 CourseRouter.patch("/activateCourse/:CourseId",
     Authorization({ AcessRoles: [roleEnum.user] }),
     validation(ActivateCodeValidation), CourseService.ActivateCourse)
+
+
+CourseRouter.post("/activatefreeCourse/:CourseId",
+    Authorization({ AcessRoles: [roleEnum.user] }),
+    validation(ActivatefreeCourseValidation), CourseService.ActivatefreeCourse)
 
 
 

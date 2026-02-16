@@ -14,12 +14,15 @@ import CodeRouter from "./modules/CodeModule/CodeRouter"
 import cors from "cors"
 config({ path: resolve("./config/.env.dev") })
 
+
 const bootsrap = async () => {
 
     const app: Express = express()
-   
+
+  
 
     app.use(express.json())
+
     app.use(cors({
         origin: '*', // For development, this allows all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -27,17 +30,18 @@ const bootsrap = async () => {
     }));
 
 
-    app.use('/upload', express.static(path.join(__dirname, 'upload')));
-    
+
+
     await DBconnection()
 
+    app.use('/upload', express.static(path.join(__dirname, '../src/upload')));
 
+   
     app.use("/Auth", AuthRouter)
     app.use("/User", UserRouter)
     app.use("/courses", CourseRouter)
     app.use("/Code", CodeRouter)
     app.get("/ParentSupervision", validation(StudentStatusVlaidation), ExamService.StudentExamStatus)
-
 
 
 

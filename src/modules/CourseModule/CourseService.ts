@@ -3,7 +3,7 @@ import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory"
 import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { IMultter } from "../Utilis/multer/cloud.multer"
-import { CourseModel  } from "../../Schema/Course"
+import { CourseModel } from "../../Schema/Course"
 
 import { Types } from "mongoose"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
@@ -122,7 +122,7 @@ class CourseService {
     GetCourseStudents = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { email , fullname } = req.query
+        const { email, fullname } = req.query
         let userIdsFilter: any = []
 
         if (email || fullname) {
@@ -266,6 +266,51 @@ class CourseService {
         return SuccesResponse({ res })
     }
 
+    ActivatefreeCourse = async (req: Request, res: Response, next: NextFunction) => {
+        const { CourseId } = req.params
+
+        const checkCourse = await this.CourseModel.findOne({
+            filter: {
+                _id: CourseId,
+                price: 0
+            }
+        })
+
+        if (!checkCourse) {
+            throw new NotFoundException("this Course isnt created or not even free")
+        }
+
+        const checkenrolled = await this.EnrollmentModel.findOne({
+            filter: {
+                courseId: checkCourse._id,
+                UserId: req.user?._id
+            }
+        })
+
+        if (checkenrolled) {
+            throw new ConflictException("this User already enrolled in this Course")
+        }
+
+
+        const createEnroll = await this.EnrollmentModel.create({
+            data: [
+                {
+                    courseId:checkCourse._id,
+                    UserId: req.user?._id!
+                }
+            ]
+        }) || []
+
+
+        if (createEnroll) {
+            throw new ConflictException("Sorry please try again later")
+        }
+
+
+        return SuccesResponse({ res })
+    }
+
+
 
     addUser = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
@@ -312,7 +357,7 @@ class CourseService {
 
 
     DeleteStudent = async (req: Request, res: Response, next: NextFunction) => {
-        const { CourseId,StudentID } = req.params
+        const { CourseId, StudentID } = req.params
 
         const CheckCourse = await this.EnrollmentModel.findOneAndDelete({
             filter: {
@@ -342,7 +387,7 @@ class CourseService {
             },
             update: {
                 Status: StatusEnum.InActive,
-               
+
             },
             options: { new: false }
         })
