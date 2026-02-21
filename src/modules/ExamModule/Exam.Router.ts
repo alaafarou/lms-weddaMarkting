@@ -21,7 +21,7 @@ ExamRouter.post("/",
 
 
 ExamRouter.get("/:ExamID", 
-    Authorization({ AcessRoles: [roleEnum.admin] }),
+    Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
     validation(ExamparamValidation),
     ExamService.GetExam
 )

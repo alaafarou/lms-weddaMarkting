@@ -30,7 +30,7 @@ lectureRouter.post("/Activate/:LectureId",
 
 
 lectureRouter.get("/:LectureId",
-    Authorization({ AcessRoles: [roleEnum.admin] }),
+    Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
     validation(LectureParamsValidation),
     lectureService.GetLecture)
 
