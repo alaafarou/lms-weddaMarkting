@@ -24,7 +24,7 @@ const bootsrap = async () => {
     app.use(express.json())
 
     app.use(cors({
-        origin: ['http://localhost:3000', 'https://dev.hushm.me'],// For development, this allows all origins
+        origin: '*', // For development, this allows all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization']
     }));
