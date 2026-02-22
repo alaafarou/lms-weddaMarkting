@@ -161,7 +161,7 @@ UserRouter.get("/",
  *       '403':
  *         description: Forbidden - User role required
  */
-UserRouter.get("MyCourses",
+UserRouter.get("/MyCourses",
     Authorization({ AcessRoles: [roleEnum.user] }),
     UserService.MyCourses)
 
