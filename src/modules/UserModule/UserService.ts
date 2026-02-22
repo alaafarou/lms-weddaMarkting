@@ -276,6 +276,7 @@ class UserService {
                 throw new BadRequestException("sorry cannot delete admin account");
             }
 
+            
             const [Enroll, Submit] = await Promise.all([
 
                 await this.EnrollmentModel.updateMany({
@@ -378,7 +379,24 @@ class UserService {
         return SuccesResponse({ res, data: { token: Credentials } });
     };
 
+
+    ISEnrollend = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+        const { CourseId } = req.params;
+        let ISEnrollend = "false"
+        const checkenrolled = await this.EnrollmentModel.findOne({
+            filter:{
+                UserId:req.user?._id,
+                courseId:Types.ObjectId.createFromHexString(CourseId!)
+            }
+        })
+        if(checkenrolled){
+            ISEnrollend = "true"
+        }
+        return SuccesResponse({res,data:{ISEnrollend}})
+    }
+    
 }
+
 
 
 

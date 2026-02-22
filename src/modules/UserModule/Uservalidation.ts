@@ -75,6 +75,15 @@ export const DeleteUserValidation ={
 }
 
 
+export const ISEnrollendValidation ={
+    params:z.strictObject({
+        CourseId:z.string().refine((data)=>{
+            return Types.ObjectId.isValid(data)
+        },{message:"invalid CourseId "})
+    })
+}
+
+
 
 
 export const GetAllUsersValidation = {

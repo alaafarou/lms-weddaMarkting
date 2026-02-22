@@ -5,7 +5,7 @@ import { Authorization } from "../middlwares/Authentication.middleware";
 import { endpoints } from "./user.endpoint";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
-import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, logoutValidation, restoreUserValidation, updatepasswordValidaton } from "./Uservalidation";
+import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, restoreUserValidation, updatepasswordValidaton } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
 
 const UserRouter = Router()
@@ -166,6 +166,10 @@ UserRouter.get("/MyCourses",
     UserService.MyCourses)
 
 
+UserRouter.get("/ISEnrollend/:CourseId",
+    validation(ISEnrollendValidation),
+    Authorization({ AcessRoles: [roleEnum.user] }),
+    UserService.ISEnrollend)
 /**
  * @openapi
  * /users/logout:
