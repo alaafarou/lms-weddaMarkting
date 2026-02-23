@@ -68,6 +68,7 @@ class UserService {
         const Courses = await this.EnrollmentModel.find({
             filter: {
                 UserId: req.user?._id,
+                LectureId:{$exists:false}
             },
             options: {
                 populate: {
