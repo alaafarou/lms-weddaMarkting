@@ -7,6 +7,8 @@ export interface ISubmition {
     Student: Types.ObjectId | IUser,
     Exam: Types.ObjectId | IExam,
     grade?: number,
+    TotalScore?: number,
+
     averageScore: number
     createdAt: Date,
     Ispassed?: boolean,
@@ -31,6 +33,10 @@ export const SubmissionSchema = new Schema<ISubmition>({
         type: Schema.Types.ObjectId,
         ref: "Exam",
         required: true
+    },
+    TotalScore: {
+        type: Number,
+        default: 0
     },
     grade: {
         type: Number,

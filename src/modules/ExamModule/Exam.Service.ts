@@ -278,7 +278,6 @@ class ExamService {
 
 
         const percentage = (EarnedScore / TotalScore) * 100;
-        console.log(percentage)
         const Ispassed: boolean = percentage > 60 ? true : false
 
 
@@ -304,6 +303,7 @@ class ExamService {
                 Ispassed,
                 Answers,
                 IsSubmited: true,
+                TotalScore
 
             }
         })
@@ -312,7 +312,7 @@ class ExamService {
             throw new BadRequestException("Sorry this Exam cant be submitted")
         }
 
-        return SuccesResponse({ res, data: UpdateSubmission })
+        return SuccesResponse({ res, data: {UpdateSubmission} })
     }
 
 

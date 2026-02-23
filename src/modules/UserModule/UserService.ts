@@ -73,7 +73,8 @@ class UserService {
                 populate: {
                     path: "courseId",
                 }
-            }
+            },
+            select:"courseId"
         })
         return SuccesResponse({ res, data: Courses })
     }

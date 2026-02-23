@@ -302,10 +302,9 @@ class CourseService {
         }) || []
 
 
-        if (createEnroll) {
+        if (!createEnroll) {
             throw new ConflictException("Sorry please try again later")
         }
-
 
         return SuccesResponse({ res })
     }
