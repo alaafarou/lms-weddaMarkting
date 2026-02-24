@@ -189,7 +189,7 @@ class UserService {
             filter: {
                 _id:Types.ObjectId.createFromHexString(UserId!),
                 DeletedAt: { $exists: true },
-                status: StatusEnum.InActive
+                Status: StatusEnum.InActive
 
             },
             update:
@@ -197,7 +197,7 @@ class UserService {
                 RestoredAt: new Date(),
                 RestoredBy: req.user?._id,
                 $unset: { DeletedAt: 1, DeletedBy: 1 },
-                status: StatusEnum.Active
+                Status: StatusEnum.Active
             },
         })
 
