@@ -172,9 +172,9 @@ export const AddStudentValidation = {
 
         phone: z.string(),
 
-        StudentType: z.enum(Object.values(StudentEnum)).default(StudentEnum.Online),
+        StudentType: z.enum(Object.values(StudentEnum)).optional().default(StudentEnum.Online),
         
-        Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
+        Country: z.enum(Object.values(CountryEnum)).optional().default(CountryEnum.Egypt),
 
     }).superRefine((data, ctx) => {
         const egyptRegex = /^01[0-9]{9}$/;
