@@ -187,7 +187,7 @@ class UserService {
         const { UserId } = req.params;
         const targetUser = await this.UserModel.findOneAndupdate({
             filter: {
-                _id: UserId,
+                _id:Types.ObjectId.createFromHexString(UserId!),
                 DeletedAt: { $exists: true },
                 status: StatusEnum.InActive
 
@@ -206,7 +206,7 @@ class UserService {
         }
 
 
-        return SuccesResponse({ res, data: "User restored successfully" });
+        return SuccesResponse({ res, data:targetUser });
     }
 
 
@@ -216,7 +216,7 @@ class UserService {
 
         const User = await this.UserModel.findOneAndupdate({
             filter: {
-                _id: UserId,
+                _id:Types.ObjectId.createFromHexString(UserId!),
                 DeletedAt: { $exists: false },
                 Status: StatusEnum.Active
             },
@@ -229,7 +229,6 @@ class UserService {
             }
         })
 
-
         return SuccesResponse({ res, data: User });
     }
 
@@ -237,7 +236,7 @@ class UserService {
         const { UserId } = req.params;
         const User = await this.UserModel.findOneAndDelete({
             filter: {
-                _id: UserId,
+                _id:Types.ObjectId.createFromHexString(UserId!),
                 role: roleEnum.user,
             },
         })
