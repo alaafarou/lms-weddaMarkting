@@ -33,13 +33,13 @@ UserRouter.patch("/profile-image",
 
 
 
-UserRouter.patch("/freezeUser/:UserId",
+UserRouter.delete("/freezeUser/:UserId",
     validation(freezeUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.freezeUser)
 
 
-UserRouter.patch("/DeleteUser/:UserId",
+UserRouter.delete("/DeleteUser/:UserId",
     validation(DeleteUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.DeleteUser)
