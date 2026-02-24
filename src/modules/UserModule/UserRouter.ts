@@ -51,7 +51,7 @@ UserRouter.delete("/DeleteUser/:UserId",
     UserService.DeleteUser)
 
 
-UserRouter.patch("/restoreUser/:Userid",
+UserRouter.patch("/restoreUser/:UserId",
     validation(restoreUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.RestoreUser)
