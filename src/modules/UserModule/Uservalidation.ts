@@ -88,6 +88,11 @@ export const ISEnrollendValidation ={
 
 export const GetAllUsersValidation = {
     query: z.strictObject({
+
+        page: z.coerce.number().optional(),
+        
+        size: z.coerce.number().optional(),
+
         fullname: z.string().optional(),
 
         email: z.email("Invalid email format").optional(),
