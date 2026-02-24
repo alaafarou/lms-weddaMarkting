@@ -2,8 +2,7 @@ import z from "zod";
 import { logoutEnum } from "../Utilis/Security/security";
 import { Types } from "mongoose";
 import { roleEnum } from "../../Schema/UserModel";
-import { GradeLevelEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
-import { Body, Query } from "tsoa";
+import { CountryEnum, GradeLevelEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
 
 
 export const updatepasswordValidaton = {
@@ -111,12 +110,16 @@ export const GetAllUsersValidation = {
 
         StudentType: z.enum(Object.values(StudentEnum)).optional(),
 
-        Status:z.enum(Object.values(StatusEnum)).optional(),
+        Status: z.enum(Object.values(StatusEnum)).optional(),
 
         phone: z.string().optional()
 
     }).optional()
 }
+
+
+
+
 
 
 
@@ -141,4 +144,57 @@ export const updateProfileValidation = {
             })
         }
     })
+}
+
+
+
+
+
+
+export const AddStudentValidation = {
+    body: z.strictObject({
+        fullname: z.string()
+            .min(2, "Fullname must be at least 2 characters")
+            .max(50, "Fullname too long"),
+
+        email: z.email("Invalid email format"),
+
+        password: z.string()
+            .min(8, "Password must be at least 8 characters")
+            .max(20, "Password must not exceed 20 characters")
+            .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/, {
+                message: "Password must contain uppercase, lowercase, number, and special character (@$!%*?&) "
+            }),
+
+        confirmPassword: z.string(),
+
+        Gradelevel: z.enum(Object.values(GradeLevelEnum)),
+
+        phone: z.string(),
+
+        StudentType: z.enum(Object.values(StudentEnum)).default(StudentEnum.Online),
+        
+        Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
+
+    }).superRefine((data, ctx) => {
+        const egyptRegex = /^01[0-9]{9}$/;
+        // Confirm password match
+        if (data.confirmPassword !== data.password) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["confirmPassword"],
+                message: "confirmPassword mismatch with password"
+            });
+        }
+
+        if (!egyptRegex.test(data.phone!)) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["phone"],
+                message: "Egypt phone must be 01xxxxxxxxx"
+            });
+        }
+
+    })
+    
 }

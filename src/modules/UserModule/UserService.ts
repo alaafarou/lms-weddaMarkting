@@ -4,7 +4,7 @@ import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { profileimageReponse } from "./UserEntites";
 import { IMultter } from "../Utilis/multer/cloud.multer";
-import { BadRequestException, NotFoundException } from "../Utilis/response/ErrorResponse";
+import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { UserResponse } from "../AuthModule/AuthEntites";
 import { createRevokeToken, GenerateCredentials, logoutEnum } from "../Utilis/Security/security";
 import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
@@ -260,6 +260,38 @@ class UserService {
         ])
         return SuccesResponse({ res, data: "Student Deleted Succesfully" });
     }
+
+
+    AddStudent = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+            let { email, password, fullname} = req.body
+            
+            const checkuser = await this.UserModel.findOne({
+                filter: {
+                    email,
+                }
+            })
+    
+            if (checkuser) {
+                throw new ConflictException("this user already created")
+            }
+            const [user] = await this.UserModel.create({
+                data: [
+                    {
+                        fullname,
+                        email,
+                        password,
+                        role:roleEnum.user,
+                        ...req.body
+                    }
+                ]
+            }) || []
+    
+            if (!user) {
+                throw new BadRequestException("this user already created")
+            }
+    
+            return SuccesResponse<UserResponse>({ res, statuscode: 201, data: { user } })
+        }
 
 
     GetAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {

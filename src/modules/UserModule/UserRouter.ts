@@ -4,7 +4,7 @@ import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cl
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
-import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, ProfileValidation, restoreUserValidation, updatepasswordValidaton, updateProfileValidation } from "./Uservalidation";
+import {  AddStudentValidation, DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, ProfileValidation, restoreUserValidation, updatepasswordValidaton, updateProfileValidation } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
 
 const UserRouter = Router()
@@ -20,6 +20,12 @@ UserRouter.patch("/:UserId",
     Authorization({ AcessRoles: [roleEnum.admin] }),
     validation(updateProfileValidation),
     UserService.UpdateProfile)
+
+
+UserRouter.post("/AddStudent",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(AddStudentValidation),
+    UserService.AddStudent)
 
 
 UserRouter.patch("/profile-image",
@@ -45,7 +51,7 @@ UserRouter.delete("/DeleteUser/:UserId",
     UserService.DeleteUser)
 
 
-UserRouter.patch("/restoreUser/:id",
+UserRouter.patch("/restoreUser/:Userid",
     validation(restoreUserValidation),
     Authorization({ AcessRoles: [roleEnum.admin] }),
     UserService.RestoreUser)
