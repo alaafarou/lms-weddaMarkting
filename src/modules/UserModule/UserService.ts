@@ -264,7 +264,7 @@ class UserService {
 
     AddStudent = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
             let { email, password, fullname} = req.body
-            
+            console.log(req.body)
             const checkuser = await this.UserModel.findOne({
                 filter: {
                     email,
