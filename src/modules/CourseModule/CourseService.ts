@@ -379,61 +379,58 @@ class CourseService {
     // perfect test and everything is ok
     FreezeCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
+
         const course = await this.CourseModel.findOneAndupdate({
             filter: {
-                _id: CourseId,
+                _id:Types.ObjectId.createFromHexString(CourseId!),
                 Status: StatusEnum.Active,
             },
             update: {
                 Status: StatusEnum.InActive,
 
             },
-            options: { new: false }
         })
         if (!course) {
-            throw new NotFoundException("sorry failed to Delete the course as it must be in IActive status")
+            throw new NotFoundException("sorry failed to freeze the course as it must be in IActive status")
         }
 
-        return SuccesResponse({ res, statuscode: 200 });
+        return SuccesResponse({ res,data:course });
     }
 
     // perfect test and everything is ok
     RestoreCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
-        console.log(CourseId)
 
         const course = await this.CourseModel.findOneAndupdate({
             filter: {
-                _id: CourseId,
-                Status: StatusEnum.InActive
+                _id: Types.ObjectId.createFromHexString(CourseId!),
+                Status: StatusEnum.InActive,
             },
             update: {
                 Status: StatusEnum.Active,
             },
-            options: { new: false }
         })
         if (!course) {
             throw new BadRequestException("sorry failed to Restore the course check if its already deleted")
         }
-        return SuccesResponse({ res, });
+        return SuccesResponse({ res,data:course });
     }
 
     // perfect test and everything is ok
     DeleteCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
 
-        if (!CourseId) {
-            throw new NotFoundException("CourseId is required");
-        }
 
         const course = await this.CourseModel.findOneAndDelete({
             filter: {
-                _id: CourseId,
+                _id:Types.ObjectId.createFromHexString(CourseId!),
             },
         })
+
         if (!course) {
             throw new BadRequestException("sorry failed to Delete the course as it must be in IActive status")
         }
+
         await Promise.all([
 
             this.SectionModel.deleteMany({
@@ -441,7 +438,6 @@ class CourseService {
                     courseId: Types.ObjectId.createFromHexString(CourseId!)
                 },
             }),
-
 
             this.EnrollmentModel.deleteMany({
                 filter: {
@@ -462,7 +458,7 @@ class CourseService {
             }),
         ])
 
-        return SuccesResponse({ res })
+        return SuccesResponse({ res , message:"Done the Course is Deleted" })
     }
 
 
