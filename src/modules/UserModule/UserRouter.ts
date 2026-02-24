@@ -2,71 +2,28 @@ import { Router } from "express";
 import UserService from "./UserService";
 import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cloud.multer";
 import { Authorization } from "../middlwares/Authentication.middleware";
-import { endpoints } from "./user.endpoint";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
-import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, restoreUserValidation, updatepasswordValidaton } from "./Uservalidation";
+import { DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, ProfileValidation, restoreUserValidation, updatepasswordValidaton, updateProfileValidation } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
 
 const UserRouter = Router()
 
-/**
- * @openapi
- * /users/profile-image:
- *   patch:
- *     tags: 
- *     - Users
- *     summary: Update user profile image (User role)
- *     security:
- *     - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required: [image]
- *             properties:
- *               image:
- *                 type: string
- *                 format: binary
- *                 description: Profile image file (JPG, PNG)
- *     responses:
- *       '200':
- *         description: Profile image updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     ImagePath:
- *                       type: string
- *                       example: "/uploads/users/abc123.jpg"
- *                     User:
- *                       type: object
- *                       properties:
- *                         _id:
- *                           type: string
- *                         profileimage:
- *                           type: string
- *                         fullname:
- *                           type: string
- *                         email:
- *                           type: string
- *       '400':
- *         description: |
- *           - Invalid image file
- *           - failed to update profile image
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - User role required
- */
+
+UserRouter.get("/:UserId",
+    validation(ProfileValidation),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.profile)
+
+
+UserRouter.patch("/:UserId",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(updateProfileValidation),
+    UserService.UpdateProfile)
+
+
 UserRouter.patch("/profile-image",
-    Authorization({ AcessRoles: endpoints.profileimage }),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
     localFileUpload({
         folder: folderEnum.User,
         validation: fileValidation.image,
@@ -74,49 +31,25 @@ UserRouter.patch("/profile-image",
     UserService.updateprofileimage)
 
 
-/**
- * @openapi
- * /users:
- *   get:
- *     tags: 
- *     - Users
- *     summary: Get current user profile (User/Admin)
- *     security:
- *     - bearerAuth: []
- *     responses:
- *       '200':
- *         description: User profile retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       type: object
- *                       properties:
- *                         _id:
- *                           type: string
- *                         fullname:
- *                           type: string
- *                         email:
- *                           type: string
- *                         phone:
- *                           type: string
- *                         profileImage:
- *                           type: string
- *                         parentsPhone:
- *                           type: string
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - User/Admin role required
- */
-UserRouter.get("/",
-    Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
-    UserService.profile)
+
+
+UserRouter.patch("/freezeUser/:UserId}",
+    validation(freezeUserValidation),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.freezeUser)
+
+
+UserRouter.patch("/DeleteUser/:UserId}",
+    validation(DeleteUserValidation),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.DeleteUser)
+
+
+UserRouter.patch("/restoreUser/:id}",
+    validation(restoreUserValidation),
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    UserService.RestoreUser)
+
 
 /**
  * @openapi
@@ -326,144 +259,13 @@ UserRouter.patch("/updatepassword",
  *       '404':
  *         description: User not found
  */
-UserRouter.get("/Acesstoken",Authorization({
+UserRouter.get("/Acesstoken", Authorization({
     AcessRoles: [roleEnum.admin, roleEnum.user],
-    TokenType:TokenEnum.RefreshToken
-}),UserService.GetAccessToken)
+    TokenType: TokenEnum.RefreshToken
+}), UserService.GetAccessToken)
 
 
-/**
- * @openapi
- * /users/freezeUser/:UserId:
- *   patch:
- *     tags: 
- *     - Users
- *     summary: Soft freeze user account + related data (Admin only)
- *     security:
- *     - bearerAuth: []
- *     parameters:
- *     - in: path
- *       name: UserId
- *       required: false
- *       schema:
- *         type: string
- *       description: MongoDB ObjectId of user to freeze (omit to self-freeze)
- *     responses:
- *       '200':
- *         description: User frozen successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: string
- *                   enum: ["Admin deleted self successfully", "User Freezed successfully"]
- *       '400':
- *         description: |
- *           - sorry Errore while Deleting admin acount
- *           - sorry cannot delete admin account
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: User not found or already deleted
- */
-UserRouter.patch("/freezeUser{/:id}",
-    validation(freezeUserValidation),
-    Authorization({ AcessRoles: [roleEnum.admin] }),
-    UserService.freezeUser)
 
-
-/**
- * @openapi
- * /users/DeleteUser/:UserId:
- *   patch:
- *     tags: 
- *     - Users
- *     summary: Hard delete frozen user + related data (Admin only)
- *     security:
- *     - bearerAuth: []
- *     parameters:
- *     - in: path
- *       name: UserId
- *       required: false
- *       schema:
- *         type: string
- *       description: MongoDB ObjectId of frozen user (omit to self-delete)
- *     responses:
- *       '200':
- *         description: User deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: string
- *                   example: "User restored successfully"
- *       '400':
- *         description: |
- *           - sorry Errore while Deleting admin acount
- *           - sorry we cant delet admin User
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: |
- *           - sorry this user cant be found as it may be already deleted
- *           - User not found or already restored
- */
-UserRouter.patch("/DeleteUser{/:id}",
-    validation(DeleteUserValidation),
-    Authorization({ AcessRoles: [roleEnum.admin] }),
-    UserService.DeleteUser)
-
-
- /**
- * @openapi
- * /users/restoreUser/:UserId:
- *   patch:
- *     tags: 
- *     - Users
- *     summary: Restore frozen user + Enrollment/Submission (Admin only)
- *     security:
- *     - bearerAuth: []
- *     parameters:
- *     - in: path
- *       name: UserId
- *       required: false
- *       schema:
- *         type: string
- *       description: MongoDB ObjectId of frozen user (omit to self-restore)
- *     responses:
- *       '200':
- *         description: User restored successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: string
- *                   enum: ["Admin account restored successfully", "User restored successfully"]
- *       '400':
- *         description: |
- *           - sorry Errore while restoring admin acount
- *           - sorry cannot restore admin account
- *       '401':
- *         description: Unauthorized - Invalid token
- *       '403':
- *         description: Forbidden - Admin role required
- *       '404':
- *         description: User not found or already restored
- */
-UserRouter.patch("/restoreUser{/:id}",
-    validation(restoreUserValidation),
-    Authorization({ AcessRoles: [roleEnum.admin] }),
-    UserService.RestoreUser)
 
 
 
@@ -482,7 +284,7 @@ UserRouter.get("/students",
 
 
 
-    
+
 
 export default UserRouter
 
