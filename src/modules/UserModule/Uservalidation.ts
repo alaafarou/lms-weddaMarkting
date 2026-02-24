@@ -127,7 +127,7 @@ export const updateProfileValidation = {
         }, { message: "invalid Mongo Id" })
     }),
 
-    Body: z.strictObject({
+    body: z.strictObject({
         fullname: z.string().optional(),
         Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
         phone: z.string().optional(),
