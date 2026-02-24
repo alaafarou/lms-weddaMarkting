@@ -13,7 +13,7 @@ import { EnrollmentModel } from "../../Schema/Enrollment";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { SubmissionModel } from "../../Schema/Submition";
 import { Types } from "mongoose";
-import { StatusEnum } from "../Utilis/Enums/courses";
+import { CountryEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
 
 class UserService {
 
@@ -264,7 +264,8 @@ class UserService {
 
     AddStudent = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
             let { email, password, fullname} = req.body
-            console.log(req.body)
+            const StudentType = StudentEnum.Online,
+            const Country = CountryEnum.Egypt
             const checkuser = await this.UserModel.findOne({
                 filter: {
                     email,
@@ -281,6 +282,8 @@ class UserService {
                         email,
                         password,
                         role:roleEnum.user,
+                        Country,
+                        StudentType,
                         ...req.body
                     }
                 ]
