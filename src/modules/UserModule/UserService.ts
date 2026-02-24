@@ -264,7 +264,7 @@ class UserService {
 
     AddStudent = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
             let { email, password, fullname} = req.body
-            const StudentType = StudentEnum.Online,
+            const StudentType = StudentEnum.Online
             const Country = CountryEnum.Egypt
             const checkuser = await this.UserModel.findOne({
                 filter: {
