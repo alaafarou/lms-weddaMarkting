@@ -40,10 +40,10 @@ class UserService {
 
 
     UpdateProfile = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { userId } = req.params
+        const { UserId } = req.params
         const User = await this.UserModel.findOneAndupdate({
             filter: {
-                _id: Types.ObjectId.createFromHexString(userId!)
+                _id: Types.ObjectId.createFromHexString(UserId!)
             },
             update: {
                 ...req.body
