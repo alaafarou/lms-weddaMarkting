@@ -312,7 +312,7 @@ class ExamService {
             throw new BadRequestException("Sorry this Exam cant be submitted")
         }
 
-        return SuccesResponse({ res, data: {UpdateSubmission} })
+        return SuccesResponse({ res, data: { UpdateSubmission } })
     }
 
 
@@ -402,7 +402,13 @@ class ExamService {
     DeleteExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
 
-        const [Submissions, Exam, questions] = await Promise.all(
+        const Exam = await this.ExamModel.findOneAndDelete({
+            filter: {
+                _id: Types.ObjectId.createFromHexString(ExamID!),
+            }
+        })
+
+        const [Submissions, questions] = await Promise.all(
             [
                 this.SubmissionModel.deleteMany({
                     filter: {
@@ -410,11 +416,6 @@ class ExamService {
                     }
                 }),
 
-                this.ExamModel.findOneAndDelete({
-                    filter: {
-                        _id: ExamID,
-                    }
-                }),
                 this.QuestionModel.deleteMany({
                     filter: {
                         ExamID: Types.ObjectId.createFromHexString(ExamID!),
@@ -423,7 +424,7 @@ class ExamService {
             ]
         )
 
-        if (!Exam || !Submissions || !questions) {
+        if (!Exam) {
             throw new BadRequestException("Error deleting exam")
         }
         return SuccesResponse({ res })
@@ -433,7 +434,7 @@ class ExamService {
     freezExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
         const Exam = await this.ExamModel.findOneAndupdate({
-            filter: { _id: ExamID, Status: StatusEnum.Active },
+            filter: { _id: Types.ObjectId.createFromHexString(ExamID!), Status: StatusEnum.Active },
             update: {
                 Status: StatusEnum.InActive
             },
@@ -442,7 +443,7 @@ class ExamService {
         if (!Exam) {
             throw new BadRequestException("failed to soft delet Exam")
         }
-        return SuccesResponse({ res })
+        return SuccesResponse({ res, data: Exam })
     }
 
 
@@ -451,21 +452,18 @@ class ExamService {
 
         const Exam = await this.ExamModel.findOneAndupdate({
             filter: {
-                _id: ExamID, Status: StatusEnum.InActive
+                _id: Types.ObjectId.createFromHexString(ExamID!),
+                Status: StatusEnum.InActive
             },
             update: {
                 Status: StatusEnum.Active
-
-            },
-            options: {
-                new: false
             }
         })
 
         if (!Exam) {
             throw new BadRequestException("failed to restore Exam")
         }
-        return SuccesResponse({ res })
+        return SuccesResponse({ res, data: Exam })
     }
 
 }

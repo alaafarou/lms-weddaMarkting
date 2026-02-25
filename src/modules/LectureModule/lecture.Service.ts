@@ -86,14 +86,13 @@ class lectureService {
             },
             update: {
                 Status:StatusEnum.InActive
-            },
-            options: { new: false }
+            }
         })
         if (!Lecture) {
             throw new NotFoundException("sorry failed to freeze the lecture as it must be in IActive status")
         }
 
-        return SuccesResponse({ res, statuscode: 200 });
+        return SuccesResponse({ res, data:Lecture });
     }
 
     // perfect test and everything is ok
@@ -108,12 +107,11 @@ class lectureService {
             update: {
                 Status:StatusEnum.Active
             },
-            options: { new: false }
         })
         if (!Lecture) {
             throw new BadRequestException("sorry failed to Restore the lecture check if its already deleted")
         }
-        return SuccesResponse({ res });
+        return SuccesResponse({ res , data:Lecture});
     }
 
     // perfect test and everything is ok

@@ -105,12 +105,11 @@ class SectionService {
     }
 
     freezeSection = async (req: Request, res: Response, next: NextFunction) => {
-        const { SectionID, CourseId } = req.params
+        const { SectionID } = req.params
 
         const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                courseId: CourseId,
                 Status:StatusEnum.Active
             },
             update: {
@@ -121,7 +120,7 @@ class SectionService {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
 
-        return SuccesResponse({ res })
+        return SuccesResponse({ res,data:section})
     }
 
     RestoreSection = async (req: Request, res: Response, next: NextFunction) => {
@@ -139,7 +138,7 @@ class SectionService {
         if (!section) {
             throw new BadRequestException("sorry failed to restore the section ")
         }
-        return SuccesResponse({ res })
+        return SuccesResponse({ res,data:section})
     }
 
     GetSection = async (req: Request, res: Response, next: NextFunction) => {
