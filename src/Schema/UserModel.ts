@@ -35,7 +35,7 @@ export interface IUser {
   phone: string
   ParentsPhone?: string
   Country?: CountryEnum,
-  Gradelevel?: GradeLevelEnum,
+  GradeLevel?: GradeLevelEnum,
   StudentType?: StudentEnum,
 
 
@@ -93,7 +93,7 @@ export const userSchema = new Schema<IUser>({
     },
   },
 
-  Gradelevel: {
+  GradeLevel: {
     type: String,
     enum: GradeLevelEnum,
     required: function (this) {

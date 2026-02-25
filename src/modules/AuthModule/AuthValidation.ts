@@ -20,7 +20,7 @@ export const SingupValidation = {
 
         confirmPassword: z.string(),
 
-        Gradelevel: z.enum(Object.values(GradeLevelEnum)),
+        GradeLevel: z.enum(Object.values(GradeLevelEnum)),
         Country: z.enum(Object.values(CountryEnum)).default(CountryEnum.Egypt),
         StudentType: z.enum(Object.values(StudentEnum)).default(StudentEnum.Online),
 

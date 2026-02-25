@@ -106,7 +106,7 @@ export const GetAllUsersValidation = {
 
         password: z.string().optional(),
 
-        Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
+        GradeLevel: z.enum(Object.values(GradeLevelEnum)).optional(),
 
         StudentType: z.enum(Object.values(StudentEnum)).optional(),
 
@@ -132,7 +132,7 @@ export const updateProfileValidation = {
 
     body: z.strictObject({
         fullname: z.string().optional(),
-        Gradelevel: z.enum(Object.values(GradeLevelEnum)).optional(),
+        GradeLevel: z.enum(Object.values(GradeLevelEnum)).optional(),
         phone: z.string().optional(),
         ParentsPhone: z.string().optional(),
     }).superRefine((data, ctx) => {
@@ -168,7 +168,7 @@ export const AddStudentValidation = {
 
         confirmPassword: z.string(),
 
-        Gradelevel: z.enum(Object.values(GradeLevelEnum)),
+        GradeLevel: z.enum(Object.values(GradeLevelEnum)),
 
         phone: z.string(),
 
