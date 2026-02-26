@@ -20,6 +20,7 @@ import { QuestionRepositry } from "../Utilis/DatabasePattern/QuestionsReposatry"
 import { StatusEnum } from "../Utilis/Enums/courses";
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory";
 import { LectureModel } from "../../Schema/lecture";
+import { console } from "inspector";
 
 
 
@@ -484,6 +485,7 @@ class ExamService {
         if (!Exam) {
             throw new BadRequestException("failed to soft delet Exam")
         }
+        console.log(Exam)
         return SuccesResponse({ res, data: Exam })
     }
 
