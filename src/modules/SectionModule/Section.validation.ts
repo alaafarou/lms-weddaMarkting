@@ -59,7 +59,7 @@ export const getAllSectionsParamsValidation = {
     query: z.strictObject({
         Status: z.enum(Object.values(StatusEnum), {
             message: 'Invalid Status. Please select a valid Status'
-        })
+        }).optional()
     })
 }
 
