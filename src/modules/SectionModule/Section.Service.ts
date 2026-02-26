@@ -144,10 +144,7 @@ class SectionService {
     GetSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
         const { Status } = req.query
-        const StatusQuery: any = {}
-        if (Status) {
-            StatusQuery.Status = Status
-        }
+
 
 
         const checkCourse = await this.CourseModel.findOne({
@@ -168,23 +165,32 @@ class SectionService {
             throw new BadRequestException("sorry failed to Deles")
         }
 
+        const LectureFilter: any = {
+            SectionId: section._id,
+            
+        }
+
+        const ExamFilter: any = {
+            SectionID: section._id,
+        }
+
+        if(Status)
+        {
+           LectureFilter.Status = Status
+           ExamFilter.Status = Status 
+        }
+
+
         const [lectures, exams] = await Promise.all([
             await this.LectureModel.find({
-                filter: {
-                    SectionId: section._id,
-                    ...StatusQuery
-
-                },
+                filter:LectureFilter,
                 options: {
                     lean: true
                 },
                 select: "LectureName Status"
             }),
             await this.ExamModel.find({
-                filter: {
-                    SectionID: section._id,
-                    ...StatusQuery
-                },
+                filter:ExamFilter, 
                 select: "name Status",
                 options: {
                     lean: true
@@ -200,13 +206,13 @@ class SectionService {
         const filter: any = {}
 
         filter.courseId = Types.ObjectId.createFromHexString(CourseId!)
-        
+
         if (Status) {
             filter.Status = Status
         }
 
         const sections = await this.SectionModel.find({
-            filter:filter
+            filter: filter
         })
         if (!sections) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
