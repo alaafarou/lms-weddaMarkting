@@ -111,7 +111,7 @@ export abstract class DatabaseRepositry<Tdocument> {
     async updateMany({
         filter,
         update,
-        options = { }
+        options = {}
     }: {
         filter: RootFilterQuery<Tdocument>,
         update: UpdateQuery<Tdocument> | UpdateWithAggregationPipeline,
@@ -199,6 +199,16 @@ export abstract class DatabaseRepositry<Tdocument> {
         }
     }
 
+    async countDocumnet({
+        filter,
+    }: {
+        filter?: RootFilterQuery<Tdocument>,
+
+    }): Promise<number> {
+
+        return  await this.model.countDocuments(filter || {})
+
+    }
 
 }
 
