@@ -41,7 +41,7 @@ const bootsrap = async () => {
     app.use("/User", UserRouter)
     app.use("/courses", CourseRouter)
     app.use("/Code", CodeRouter)
-    app.get("/ParentSupervision", validation(StudentStatusVlaidation), ExamService.StudentExamStatus)
+    app.get("/ParentSupervision", validation(StudentStatusVlaidation), ExamService.StudentStatus)
 
 
 

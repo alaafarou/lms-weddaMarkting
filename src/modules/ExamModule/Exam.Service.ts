@@ -18,6 +18,8 @@ import { IMultter } from "../Utilis/multer/cloud.multer";
 import { QuestionHydratedDocument, QuestionModel } from "../../Schema/Questions";
 import { QuestionRepositry } from "../Utilis/DatabasePattern/QuestionsReposatry";
 import { StatusEnum } from "../Utilis/Enums/courses";
+import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory";
+import { LectureModel } from "../../Schema/lecture";
 
 
 
@@ -30,7 +32,7 @@ class ExamService {
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly QuestionModel: QuestionRepositry = new QuestionRepositry(QuestionModel)
-
+    private readonly LectureModel : LectureRepositry = new LectureRepositry(LectureModel)
     constructor() { }
 
     FlatenQuestions = async (req: Request, res: Response, next: NextFunction) => {
@@ -316,7 +318,8 @@ class ExamService {
     }
 
 
-    StudentExamStatus = async (req: Request, res: Response, next: NextFunction) => {
+ 
+    StudentStatus = async (req: Request, res: Response, next: NextFunction) => {
         const { phone, ParentsPhone } = req.query
 
         const Student = await this.UserModel.findOne({
@@ -330,7 +333,7 @@ class ExamService {
             throw new BadRequestException("sorry there is no student with such number ")
         }
 
-        const [Courses, Submitted] = await Promise.all([
+        const [Courses, LecturesViewed, Submitted] = await Promise.all([
 
             this.EnrollmentModel.find({
                 filter: {
@@ -339,10 +342,17 @@ class ExamService {
                 options: {
                     populate: [{
                         path: "courseId",
-                        select: "name description image subject"
+                        select: "name image "
                     }]
                 },
             }),
+
+            this.LectureModel.countDocumnet({
+                filter: {
+                    viewedBy: { $in: [Student._id!] }
+                },
+            }),
+
 
             this.SubmissionModel.find({
                 filter: {
@@ -357,49 +367,74 @@ class ExamService {
                 }
             })
         ])
-        if (!Courses || !Submitted) {
+
+        if (!Courses || !LecturesViewed || !Submitted) {
             throw new BadRequestException("sorry failed to fecth data try again later")
 
         }
 
-        console.log(Submitted)
 
-        const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade)
+        const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade) || []
 
-        let avergareGrade: number = 0;
+        let averageGrade: number = 0;
+        let maxGrade: number = 0;
 
-        for (let i = 0; i < Grades.length; i++) {
-            avergareGrade = avergareGrade + Grades[i]!
-        }
-        const averagePercentage = Math.round((avergareGrade / Grades.length) * 100);
-
-        const CourseId = Courses.map(Course => Course._id)
-
-        const Exams = await this.ExamModel.find({
-            filter: {
-                CourseID: { $in: CourseId }
+        if (Grades.length > 0) {
+            for (let i = 0; i < Grades.length; i++) {
+                if (Grades[i]! > maxGrade) {
+                    maxGrade = Grades[i]!;
+                }
+                averageGrade += Grades[i]!;
             }
-        })
+        }
 
-        const TotalExams = Exams.length
+        const GradeAveragePercentage = Grades.length > 0
+            ? Math.round((averageGrade / (Grades.length * 100)) * 100)
+            : 0;
 
-        const SubmittedExams = Submitted.map(submit => {
-            const data = submit.Exam as ExamHydratedDocument
-            return data.name
-        })
+
+        // Exams and lectures that the student should take based on the courses he is enrolled in
+        const CourseId = Courses.map(Course => Course._id)
+        const [TotalExams, TotalLectures] = await Promise.all([
+
+            this.ExamModel.countDocumnet({
+                filter: {
+                    CourseID: { $in: CourseId }
+                },
+            }),
+
+            this.LectureModel.countDocumnet({
+                filter: {
+                    CourseId: { $in: CourseId }
+                },
+            }),
+
+        ])
+
+        //
+        const AverageLectures = TotalLectures > 0
+            ? Math.round((LecturesViewed / TotalLectures) * 100)
+            : 0;
+
+        // 2. حساب نسبة دخول الامتحانات
+        const AverageExams = TotalExams > 0
+            ? Math.round((Submitted.length / TotalExams) * 100)
+            : 0;
+
+        /// All of the exams he should take 
 
         return SuccesResponse({
             res, data: {
                 Student,
-                TotalExams,
-                TotalCourses: Courses.length,
+                AverageExams,
+                AverageLectures,
                 TotalSubmitedExams: Submitted.length,
-                SubmittedExams,
-                averagePercentage
-                
+                maxGrade,
+                GradeAveragePercentage
             }
         })
     }
+
 
     DeleteExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
