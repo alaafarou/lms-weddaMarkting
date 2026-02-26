@@ -197,20 +197,16 @@ class SectionService {
     getAllSections = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
         const { Status } = req.query
-        const StatusQuery: any = {}
-        if (Status) {
-            StatusQuery.Status = Status
-        }
-        console.log(StatusQuery)
-        console.log({...StatusQuery})
+        const filter: any = {}
 
+        filter.courseId = Types.ObjectId.createFromHexString(CourseId!)
+        
+        if (Status) {
+            filter.Status = Status
+        }
 
         const sections = await this.SectionModel.find({
-            filter: {
-                courseId: CourseId,
-                ...StatusQuery
-            }
-
+            filter:filter
         })
         if (!sections) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
