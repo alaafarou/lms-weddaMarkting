@@ -11,7 +11,7 @@ import { ExamHydratedDocument, ExamModule, IExam } from "../../Schema/Exam";
 import { CourseModel } from "../../Schema/Course";
 import { SectionModel } from "../../Schema/Section";
 import { SubmissionModel } from "../../Schema/Submition";
-import { UserModel } from "../../Schema/UserModel";
+import { roleEnum, UserModel } from "../../Schema/UserModel";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
 import { IMultter } from "../Utilis/multer/cloud.multer";
@@ -325,7 +325,8 @@ class ExamService {
         const Student = await this.UserModel.findOne({
             filter: {
                 phone,
-                ParentsPhone
+                ParentsPhone,
+                role:roleEnum.user
             }
         })
 
@@ -367,6 +368,8 @@ class ExamService {
                 }
             })
         ])
+
+        console.log({Courses, LecturesViewed, Submitted})
 
         if (!Courses || !LecturesViewed || !Submitted) {
             throw new BadRequestException("sorry failed to fecth data try again later")
