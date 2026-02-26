@@ -201,6 +201,8 @@ class SectionService {
         if (Status) {
             StatusQuery.Status = Status
         }
+        console.log(StatusQuery)
+        console.log(...StatusQuery)
 
 
         const sections = await this.SectionModel.find({
