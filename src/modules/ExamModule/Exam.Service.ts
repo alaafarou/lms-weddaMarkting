@@ -317,7 +317,7 @@ class ExamService {
 
 
     StudentExamStatus = async (req: Request, res: Response, next: NextFunction) => {
-        const { phone, ParentsPhone } = req.body
+        const { phone, ParentsPhone } = req.query
 
         const Student = await this.UserModel.findOne({
             filter: {
@@ -364,14 +364,14 @@ class ExamService {
 
         console.log(Submitted)
 
-        // const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade)
+        const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade)
 
-        // // let avergareGrade: number = 0;
+        let avergareGrade: number = 0;
 
-        // // for (let i = 0; i < Grades.length; i++) {
-        // //     avergareGrade = avergareGrade + Grades[i]!
-        // // }
-        // // const averagePercentage = Math.round((avergareGrade / Grades.length) * 100);
+        for (let i = 0; i < Grades.length; i++) {
+            avergareGrade = avergareGrade + Grades[i]!
+        }
+        const averagePercentage = Math.round((avergareGrade / Grades.length) * 100);
 
         const CourseId = Courses.map(Course => Course._id)
 
@@ -395,6 +395,8 @@ class ExamService {
                 TotalCourses: Courses.length,
                 TotalSubmitedExams: Submitted.length,
                 SubmittedExams,
+                averagePercentage
+                
             }
         })
     }

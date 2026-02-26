@@ -1,6 +1,6 @@
 import z from "zod";
 import { questionEnum } from "../Utilis/Enums/courses";
-import { Types } from "mongoose";
+import {  Types } from "mongoose";
 
 export const CreateExamValidation = {
     params: z.strictObject({
@@ -49,9 +49,9 @@ export const CreateExamValidation = {
             // }
             if (
                 Question.type === questionEnum.multiple_choice
-                &&
+                     &&
                 Question.Answers
-                &&
+                     &&
                 !Question.Answers.includes(Question.correctAnswer)) {
                 ctx.addIssue({
                     code: "custom",
@@ -138,7 +138,7 @@ export const ExamparamValidation = {
 
 
 export const StudentStatusVlaidation = {
-    body: z.strictObject({
+    query: z.strictObject({
         ParentsPhone: z.string(),
         phone: z.string()
     })
