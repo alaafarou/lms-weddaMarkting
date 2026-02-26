@@ -3,7 +3,7 @@ import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
 import SectionService from "./Section.Service";
-import { CreateSectionValidation, getAllSectionsParamsValidation, SectionParamsValidation } from "./Section.validation";
+import { CreateSectionValidation, getAllSectionsParamsValidation, GetSectionValidation, SectionParamsValidation } from "./Section.validation";
 import lectureRouter from "../LectureModule/lecture.Router";
 import ExamRouter from "../ExamModule/Exam.Router";
 
@@ -27,7 +27,7 @@ SectionRouter.get("/",
 
 SectionRouter.get("/:SectionID",
     Authorization({AcessRoles:[roleEnum.admin , roleEnum.user]}),
-    validation(SectionParamsValidation),
+    validation(GetSectionValidation),
     SectionService.GetSection
 )
 

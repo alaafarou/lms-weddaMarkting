@@ -20,7 +20,7 @@ class SectionService {
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
-  
+
 
     constructor() { }
 
@@ -73,7 +73,7 @@ class SectionService {
 
     DeleteSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID } = req.params
-        
+
         const SectionId = Types.ObjectId.createFromHexString(SectionID!)
 
         const section = await this.SectionModel.findOneAndDelete({
@@ -81,20 +81,20 @@ class SectionService {
                 _id: SectionID,
             },
         })
-        if(!section){
+        if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
 
         const [lectures, exams] = await Promise.all([
-             this.LectureModel.deleteMany({
+            this.LectureModel.deleteMany({
                 filter: {
                     SectionId,
                 },
             }),
             this.ExamModel.deleteMany({
                 filter: {
-                    SectionID:SectionId
-                },              
+                    SectionID: SectionId
+                },
             }),
         ])
 
@@ -110,17 +110,17 @@ class SectionService {
         const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                Status:StatusEnum.Active
+                Status: StatusEnum.Active
             },
             update: {
-                Status:StatusEnum.InActive
+                Status: StatusEnum.InActive
             },
         })
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
 
-        return SuccesResponse({ res,data:section})
+        return SuccesResponse({ res, data: section })
     }
 
     RestoreSection = async (req: Request, res: Response, next: NextFunction) => {
@@ -129,20 +129,26 @@ class SectionService {
         const section = await this.SectionModel.findOneAndupdate({
             filter: {
                 _id: SectionID,
-                Status:StatusEnum.InActive
+                Status: StatusEnum.InActive
             },
             update: {
-                Status:StatusEnum.Active
+                Status: StatusEnum.Active
             },
         })
         if (!section) {
             throw new BadRequestException("sorry failed to restore the section ")
         }
-        return SuccesResponse({ res,data:section})
+        return SuccesResponse({ res, data: section })
     }
 
     GetSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
+        const { Status } = req.query
+        const StatusQuery: any = {}
+        if (Status) {
+            StatusQuery.Status = Status
+        }
+
 
         const checkCourse = await this.CourseModel.findOne({
             filter: {
@@ -166,6 +172,8 @@ class SectionService {
             await this.LectureModel.find({
                 filter: {
                     SectionId: section._id,
+                    ...StatusQuery
+
                 },
                 options: {
                     lean: true
@@ -175,6 +183,7 @@ class SectionService {
             await this.ExamModel.find({
                 filter: {
                     SectionID: section._id,
+                    ...StatusQuery
                 },
                 select: "name Status",
                 options: {
@@ -187,10 +196,17 @@ class SectionService {
 
     getAllSections = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
+        const { Status } = req.query
+        const StatusQuery: any = {}
+        if (Status) {
+            StatusQuery.Status = Status
+        }
+
 
         const sections = await this.SectionModel.find({
             filter: {
                 courseId: CourseId,
+                ...StatusQuery
             }
 
         })
