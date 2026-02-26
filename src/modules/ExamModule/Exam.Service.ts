@@ -429,6 +429,7 @@ class ExamService {
                 AverageExams,
                 AverageLectures,
                 TotalSubmitedExams: Submitted.length,
+                LecturesViewed,
                 maxGrade,
                 GradeAveragePercentage
             }
