@@ -371,10 +371,10 @@ class ExamService {
 
         console.log({Courses, LecturesViewed, Submitted})
 
-        if (!Courses || !LecturesViewed || !Submitted) {
-            throw new BadRequestException("sorry failed to fecth data try again later")
+        // if (!Courses || !LecturesViewed || !Submitted) {
+        //     throw new BadRequestException("sorry student doesnt have any status to show")
 
-        }
+        // }
 
 
         const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade) || []
