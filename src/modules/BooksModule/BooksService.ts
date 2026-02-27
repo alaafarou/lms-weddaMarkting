@@ -84,12 +84,13 @@ class BooksService {
 
     GetAllBooks = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number }
-        const { GradeLevel , Status, name } = req.query
+        const { GradeLevel , Status, name , price} = req.query
         const query: any = {};
 
         if (name) query.name = { $regex: name, $options: "i" };
         if (GradeLevel) query.GradeLevel = GradeLevel;
         if (Status) query.Status = Status;
+        if (price) query.price = price;
 
         const Books = await this.BooksModel.paginate({
             filter: query,
