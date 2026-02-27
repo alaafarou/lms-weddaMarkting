@@ -12,6 +12,7 @@ import { validation } from "./modules/middlwares/validation.middleware"
 import { StudentStatusVlaidation } from "./modules/ExamModule/Exam.validation"
 import CodeRouter from "./modules/CodeModule/CodeRouter"
 import cors from "cors"
+import BookRouter from "./modules/BooksModule/BooksRouters"
 config({ path: resolve("./config/.env.dev") })
 
 
@@ -41,6 +42,7 @@ const bootsrap = async () => {
     app.use("/User", UserRouter)
     app.use("/courses", CourseRouter)
     app.use("/Code", CodeRouter)
+    app.use("/Books", BookRouter)
     app.get("/ParentSupervision", validation(StudentStatusVlaidation), ExamService.StudentStatus)
 
 
