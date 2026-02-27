@@ -2,7 +2,7 @@ import { Router } from "express"
 import { Authorization } from "../middlwares/Authentication.middleware"
 import { roleEnum } from "../../Schema/UserModel"
 import { validation } from "../middlwares/validation.middleware"
-import { CreateBookValidation, DeleteBooksValidation, UpdateBooksValidation } from "./BooksValidations"
+import { CreateBookValidation, DeleteBooksValidation, GetAllBooksValidation, UpdateBooksValidation } from "./BooksValidations"
 import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cloud.multer"
 import BooksService from "./BooksService"
 
@@ -19,7 +19,7 @@ BookRouter.post("/",
 
 BookRouter.get("/AllBooks",
     Authorization({ AcessRoles: [roleEnum.admin,roleEnum.user] }),
-    validation(UpdateBooksValidation),
+    validation(GetAllBooksValidation),
     BooksService.GetAllBooks
 
 )
