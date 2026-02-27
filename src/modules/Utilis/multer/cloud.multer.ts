@@ -14,7 +14,8 @@ export enum folderEnum {
     User = "User",
     Courses = "Courses",
     lectures = "lectures",
-    Exam = "Exam"
+    Exam = "Exam",
+    Books = "Books"
 }
 
 export const fileValidation = {
