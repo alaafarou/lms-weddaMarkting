@@ -61,7 +61,7 @@ export const GetAllBooksValidation = {
         page: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
         name: z.string().min(1, 'Books name is required').max(100, 'Books name must be less than 100 characters').optional(),
-        price: z.number().min(0, 'Price must be positive').max(50000, 'Price cannot exceed 50,000').optional(),
+        price: z.coerce.number().min(0, 'Price must be positive').max(50000, 'Price cannot exceed 50,000').optional(),
         GradeLevel: z.enum(Object.values(GradeLevelEnum), {
             message: 'Invalid Grade Level. Please select a valid option'
         }).optional(),
