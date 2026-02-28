@@ -364,7 +364,7 @@ class CodeService {
             },
         });
 
-        const results = Codes.results.map((Code:any) => {
+        const results = Codes.results.foreach((Code:any) => {
             return {
                 Code: Code.Code,
                 CodeStatus: Code.CodeStatus,
@@ -376,7 +376,6 @@ class CodeService {
                 usedAt: Code.usedAt || null,
                 createdAt: Code.createdAt   
             }
-            
         })
         return SuccesResponse({ res, data: results });
     };
