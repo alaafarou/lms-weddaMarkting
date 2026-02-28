@@ -351,33 +351,42 @@ class CodeService {
             options: {
                 populate: [{
                     path: "Usedby",
-                    select: "email fullname lastname firstname phone Gradelevel"
+                    select: "email"
                 },
                 {
                     path: "lectureId",
                     select: "LectureName ",
-                    populate: {  
+                    populate: {
                         path: "CourseId",
-                        select: "name GradeLevel Semester"  
+                        select: "name GradeLevel Semester"
                     }
                 }],
             },
         });
 
-        const results = Codes.results.foreach((Code:any) => {
+        const falttendCodeData = Codes.result.map((Code: any) => {
             return {
                 Code: Code.Code,
                 CodeStatus: Code.CodeStatus,
-                Usedby: Code.Usedby,
+                Usedby: Code.Usedby.email || null,
                 LectureName: Code.lectureId?.LectureName! || null,
                 CourseName: Code.lectureId?.CourseId?.name || null,
                 GradeLevel: Code.lectureId?.CourseId?.GradeLevel || null,
                 Semester: Code.lectureId?.CourseId?.Semester || null,
                 usedAt: Code.usedAt || null,
-                createdAt: Code.createdAt   
+                createdAt: Code.createdAt,
             }
         })
-        return SuccesResponse({ res, data: results });
+        
+        const Result = {
+            pages:Codes.pages,
+            countdoc:Codes.countdoc,
+            result:falttendCodeData,
+            currentpage:Codes.currentpage,
+            size:Codes.size
+        }
+        
+        return SuccesResponse({ res, data:Result });
     };
 
 
