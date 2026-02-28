@@ -11,6 +11,7 @@ import { CompareHash } from "../Utilis/Security/hash";
 import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
 import { OtpModel } from "../../Schema/OtpModel";
+import { StatusEnum } from "../Utilis/Enums/courses";
 
 
 
@@ -44,6 +45,7 @@ class AuthenticationService {
 
     Singup = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
         let { email, password, fullname } = req.body
+        console.log(req.body)
         const checkuser = await this.UserModel.findOne({
             filter: {
                 email,
@@ -209,7 +211,9 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                DeletedAt: { $exists: false }
+                DeletedAt: { $exists: false },
+                Status:StatusEnum.Active
+                
             },
             select: "role fullname password"
         })
