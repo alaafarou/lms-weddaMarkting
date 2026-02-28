@@ -12,7 +12,7 @@ import { CodeModel, CodeTypeEnum } from "../../Schema/Code"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
 import { StatusEnum } from "../Utilis/Enums/courses"
-
+import type { CodeHydareatedDocument } from "../../Schema/Code";
 class CodeService {
 
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel);
@@ -358,13 +358,27 @@ class CodeService {
                     select: "LectureName ",
                     populate: {  
                         path: "CourseId",
-                        select: "name GradeLevel semester"  
+                        select: "name GradeLevel Semester"  
                     }
                 }],
             },
         });
 
-        return SuccesResponse({ res, data: Codes });
+        const results = Codes.results.map((Code:any) => {
+            return {
+                Code: Code.Code,
+                CodeStatus: Code.CodeStatus,
+                Usedby: Code.Usedby,
+                LectureName: Code.lectureId?.LectureName! || null,
+                CourseName: Code.lectureId?.CourseId?.name || null,
+                GradeLevel: Code.lectureId?.CourseId?.GradeLevel || null,
+                Semester: Code.lectureId?.CourseId?.Semester || null,
+                usedAt: Code.usedAt || null,
+                createdAt: Code.createdAt   
+            }
+            
+        })
+        return SuccesResponse({ res, data: results });
     };
 
 
