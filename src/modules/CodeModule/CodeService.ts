@@ -364,6 +364,8 @@ class CodeService {
             },
         });
 
+        console.log(Codes)
+
         const falttendCodeData = Codes.result.map((Code: any) => {
             return {
                 Code: Code.Code,
