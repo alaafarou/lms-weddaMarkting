@@ -368,7 +368,7 @@ class CodeService {
             return {
                 Code: Code.Code,
                 CodeStatus: Code.CodeStatus,
-                Usedby: Code.Usedby.email || null,
+                Usedby: Code.Usedby?.email || null,
                 LectureName: Code.lectureId?.LectureName! || null,
                 CourseName: Code.lectureId?.CourseId?.name || null,
                 GradeLevel: Code.lectureId?.CourseId?.GradeLevel || null,
@@ -377,7 +377,7 @@ class CodeService {
                 createdAt: Code.createdAt,
             }
         })
-        
+
         const Result = {
             pages:Codes.pages,
             countdoc:Codes.countdoc,
