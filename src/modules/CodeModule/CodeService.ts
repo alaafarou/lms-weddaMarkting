@@ -164,7 +164,7 @@ class CodeService {
     GetAllPrivateCodes = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
         const { email, phone, name, Code, GradeLevel, Semester, CodeStatus } = req.query || {};
-        console.log(email,name)
+        console.log(email, name)
 
         let userIdsFilter = {};
         let courseFilter = {};
@@ -240,9 +240,9 @@ class CodeService {
                     },
                     {
                         path: "CourseId",
-                        select: "name"
+                        select: "name gradeLevel Semester"
                     }],
-                sort: { usedAt: -1 }, // Most recently used first
+                sort: { createdAt: -1 }, // Most recently created first
             },
         });
         console.log("iam in response")
@@ -314,7 +314,6 @@ class CodeService {
     GetAllCodesLecture = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
         const { LectureName, Code, CodeStatus, CodeType } = req.query;
-        console.log(CodeType, LectureName, page)
         let LectureFilter = {};
         let CodeFilter: any = {};
 
@@ -341,8 +340,6 @@ class CodeService {
             LectureFilter = { LectureId: { $in: lectures.map(L => L._id) } };
         }
 
-        
-
         const Codes = await this.CodeModel.paginate({
             filter: {
                 ...LectureFilter,
@@ -358,8 +355,11 @@ class CodeService {
                 },
                 {
                     path: "lectureId",
-                    select: "LectureName"
-
+                    select: "LectureName ",
+                    populate: {  
+                        path: "CourseId",
+                        select: "name GradeLevel semester"  
+                    }
                 }],
             },
         });
