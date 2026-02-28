@@ -164,6 +164,7 @@ class CodeService {
     GetAllPrivateCodes = async (req: Request, res: Response, next: NextFunction) => {
         const { page, size } = req.query as unknown as { page: number, size: number };
         const { email, phone, name, Code, GradeLevel, Semester, CodeStatus } = req.query || {};
+        console.log(email,name)
 
         let userIdsFilter = {};
         let courseFilter = {};
@@ -244,6 +245,7 @@ class CodeService {
                 sort: { usedAt: -1 }, // Most recently used first
             },
         });
+        console.log("iam in response")
 
         return SuccesResponse({ res, data: Codes });
     };
@@ -339,10 +341,13 @@ class CodeService {
             LectureFilter = { LectureId: { $in: lectures.map(L => L._id) } };
         }
 
+        
+
         const Codes = await this.CodeModel.paginate({
             filter: {
                 ...LectureFilter,
                 ...CodeFilter,
+                CourseId: { $exists: false }
             },
             page,
             size,
@@ -356,7 +361,6 @@ class CodeService {
                     select: "LectureName"
 
                 }],
-                sort: { usedAt: -1 } // Most recently used first
             },
         });
 
