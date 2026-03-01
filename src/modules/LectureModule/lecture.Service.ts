@@ -236,7 +236,7 @@ class lectureService {
 
     
     playlecture = async (req: Request, res: Response, next: NextFunction) => {
-        const { LectureId, courseId } = req.params
+        const { LectureId, CourseId } = req.params
 
         const [checkEnrollLecture, checkCourseEnroll] = await Promise.all([
 
@@ -249,7 +249,7 @@ class lectureService {
 
             await this.EnrollmentModel.findOne({
                 filter: {
-                    courseId: Types.ObjectId.createFromHexString(courseId!),
+                    courseId: Types.ObjectId.createFromHexString(CourseId!),
                     UserId: req.user?._id,
                 }
             }),
