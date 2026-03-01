@@ -201,6 +201,7 @@ class CodeService {
 
         if (name || GradeLevel || Semester) {
             let CourseQuery: any = {}
+            
 
             if (name) {
                 CourseQuery.name = { $regex: name, $options: "i" }
@@ -216,10 +217,11 @@ class CodeService {
                 filter: CourseQuery,
                 select: "_id"
             })
+            console.log(CourseQuery)
             courseFilter = { CourseId: { $in: courses.map(c => c._id) } };
         }
 
-        console.log(courseFilter)
+        console.log("this is the Course filter", courseFilter)
 
         const Codes = await this.CodeModel.paginate({
             filter: {
