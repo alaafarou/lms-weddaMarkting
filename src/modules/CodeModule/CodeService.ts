@@ -233,18 +233,18 @@ class CodeService {
             },
             page,
             size,
-            // options: {
-            //     populate: [
-            //         {
-            //             path:"Usedby",
-            //             select: "email fullname"
-            //         },
-            //         {
-            //             path:"CourseId",
-            //             select: "name GradeLevel Semester"
-            //         }],
-            //     sort: { createdAt: -1 }, // Most recently created first
-            // },
+            options: {
+                populate: [
+                    {
+                        path:"Usedby",
+                        select: "email fullname"
+                    },
+                    {
+                        path:"CourseId",
+                        select: "name GradeLevel Semester"
+                    }],
+                sort: { createdAt: -1 }, // Most recently created first
+            },
         });
 
         console.log(Codes)
