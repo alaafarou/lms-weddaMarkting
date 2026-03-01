@@ -152,7 +152,7 @@ class CourseService {
             options: {
                 populate: [{
                     path: "UserId",
-                    select: "email fullname phone Gradelevel status"
+                    select: "email fullname phone GradeLevel Status"
                 }]
             }
         })

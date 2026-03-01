@@ -7,7 +7,7 @@ import { Types } from "mongoose";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
-import { ExamHydratedDocument, ExamModule, IExam } from "../../Schema/Exam";
+import { ExamModule, IExam } from "../../Schema/Exam";
 import { CourseModel } from "../../Schema/Course";
 import { SectionModel } from "../../Schema/Section";
 import { SubmissionModel } from "../../Schema/Submition";
@@ -33,7 +33,7 @@ class ExamService {
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly QuestionModel: QuestionRepositry = new QuestionRepositry(QuestionModel)
-    private readonly LectureModel : LectureRepositry = new LectureRepositry(LectureModel)
+    private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     constructor() { }
 
     FlatenQuestions = async (req: Request, res: Response, next: NextFunction) => {
@@ -319,7 +319,7 @@ class ExamService {
     }
 
 
- 
+
     StudentStatus = async (req: Request, res: Response, next: NextFunction) => {
         const { phone, ParentsPhone } = req.query
 
@@ -327,7 +327,7 @@ class ExamService {
             filter: {
                 phone,
                 ParentsPhone,
-                role:roleEnum.user
+                role: roleEnum.user
             }
         })
 
@@ -370,7 +370,7 @@ class ExamService {
             })
         ])
 
-        console.log({Courses, LecturesViewed, Submitted})
+        console.log({ Courses, LecturesViewed, Submitted })
 
         // if (!Courses || !LecturesViewed || !Submitted) {
         //     throw new BadRequestException("sorry student doesnt have any status to show")
@@ -487,6 +487,44 @@ class ExamService {
         }
         console.log(Exam)
         return SuccesResponse({ res, data: Exam })
+    }
+
+
+    ExameStatus = async (req: Request, res: Response, next: NextFunction) => {
+        const { ExamID } = req.params
+
+        const Submissions = await this.SubmissionModel.find({
+            filter: {
+                Exam: Types.ObjectId.createFromHexString(ExamID!),
+            },
+        })
+
+        if (!Submissions) {
+            throw new BadRequestException("failed to get Exam status")
+        }
+
+        const stats = Submissions.reduce((acc, sub) => {
+            if (Boolean(sub?.IsSubmited)) {
+                acc.submitted++
+                if (Boolean(sub?.Ispassed)) acc.passed++
+            }
+            return acc
+        }, { submitted: 0, passed: 0 })
+
+        const TotalStudentNotSubmitted = Submissions.length - stats.submitted
+        const AveragePassed = stats.submitted > 0
+            ? Math.round((stats.passed / stats.submitted) * 100)
+            : 0
+
+        const Status = {
+            TotalStudentsSubmitted: stats.submitted,
+            TotalPassed: stats.passed,
+            TotalStudentNotSubmitted,
+            AveragePassed,
+            TotalStudents: Submissions.length
+        }
+
+        return SuccesResponse({ res, data: { Status } })
     }
 
 

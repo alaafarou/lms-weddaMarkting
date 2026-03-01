@@ -25,6 +25,8 @@ ExamRouter.get("/:ExamID",
     validation(ExamparamValidation),
     ExamService.GetExam
 )
+
+
  
 ExamRouter.patch("/:ExamID", 
     Authorization({ AcessRoles: [roleEnum.admin] }),
@@ -78,6 +80,12 @@ ExamRouter.patch("/submit/:ExamID",
     Authorization({ AcessRoles: [roleEnum.user] }),
     validation(ExamparamValidation),
     ExamService.submiteExame
+)
+
+ExamRouter.get("/ExamStatus/:ExamID", 
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    validation(ExamparamValidation),
+    ExamService.ExameStatus
 )
 
 

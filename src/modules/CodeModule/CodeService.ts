@@ -240,12 +240,11 @@ class CodeService {
                     },
                     {
                         path: "CourseId",
-                        select: "name gradeLevel Semester"
+                        select: "name GradeLevel Semester"
                     }],
                 sort: { createdAt: -1 }, // Most recently created first
             },
         });
-        console.log("iam in response")
 
         return SuccesResponse({ res, data: Codes });
     };
