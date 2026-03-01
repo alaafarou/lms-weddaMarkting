@@ -1,4 +1,4 @@
-import type { Model, UpdateWriteOpResult, CreateOptions, HydratedDocument, QueryOptions, ProjectionType, RootFilterQuery, MongooseUpdateQueryOptions, UpdateQuery, UpdateWithAggregationPipeline, PopulateOptions, QueryWithHelpers } from "mongoose";
+import type { Model, UpdateWriteOpResult, CreateOptions, HydratedDocument, QueryOptions, ProjectionType, RootFilterQuery, MongooseUpdateQueryOptions, UpdateQuery, UpdateWithAggregationPipeline, PopulateOptions } from "mongoose";
 
 
 export abstract class DatabaseRepositry<Tdocument> {

@@ -34,7 +34,6 @@ const CourseSchema = new Schema<ICourse>({
         maxLength: [100, "name must not exceed 100"],
         minLength: [5, "name must not be less than  5"],
         required: true,
-        unique: true
     },
 
     description: {

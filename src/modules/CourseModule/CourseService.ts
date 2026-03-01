@@ -4,7 +4,6 @@ import { SuccesResponse } from "../Utilis/response/SucessResponse"
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse"
 import { IMultter } from "../Utilis/multer/cloud.multer"
 import { CourseModel } from "../../Schema/Course"
-
 import { Types } from "mongoose"
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
 import { SectionModel } from "../../Schema/Section"
@@ -54,14 +53,14 @@ class CourseService {
 
         }
 
-        const checkCourse = await this.CourseModel.findOne({
-            filter: {
-                name: req.body.name,
-            }
-        })
-        if (checkCourse) {
-            throw new ConflictException("this course with this name already created")
-        }
+        // const checkCourse = await this.CourseModel.findOne({
+        //     filter: {
+        //         name: req.body.name,
+        //     }
+        // })
+        // if (checkCourse) {
+        //     throw new ConflictException("this course with this name already created")
+        // }
 
         const [Course] = await this.CourseModel.create({
             data: [Data]
@@ -74,17 +73,17 @@ class CourseService {
 
     // perfect test and everything is ok
     UpdateCourse = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { name } = req.body
+        // const { name } = req.body
         const { CourseId } = req.params
         const file = req.file as IMultter
-        if (name && (await this.CourseModel.findOne({
-            filter: {
-                name,
-                _id: CourseId
-            }
-        }))) {
-            throw new ConflictException("therename already used")
-        }
+        // if (name && (await this.CourseModel.findOne({
+        //     filter: {
+        //         name,
+        //         _id: CourseId
+        //     }
+        // }))) {
+        //     throw new ConflictException("therename already used")
+        // }
 
         const updateCourse = await this.CourseModel.findOneAndupdate({
             filter: {
