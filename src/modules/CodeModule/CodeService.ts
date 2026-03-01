@@ -12,7 +12,6 @@ import { CodeModel, CodeTypeEnum } from "../../Schema/Code"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
 import { StatusEnum } from "../Utilis/Enums/courses"
-import type { CodeHydareatedDocument } from "../../Schema/Code";
 class CodeService {
 
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel);
@@ -236,7 +235,7 @@ class CodeService {
                 populate: [
                     {
                         path: "Usedby",
-                        select: "email fullname phone"
+                        select: "email fullname"
                     },
                     {
                         path: "CourseId",
