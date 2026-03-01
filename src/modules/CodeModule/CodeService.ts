@@ -234,16 +234,18 @@ class CodeService {
             options: {
                 populate: [
                     {
-                        path: "Usedby",
+                        path:"Usedby",
                         select: "email fullname"
                     },
                     {
-                        path: "CourseId",
+                        path:"CourseId",
                         select: "name GradeLevel Semester"
                     }],
                 sort: { createdAt: -1 }, // Most recently created first
             },
         });
+
+        console.log(Codes)
 
         return SuccesResponse({ res, data: Codes });
     };
