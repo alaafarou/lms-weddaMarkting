@@ -262,12 +262,13 @@ class lectureService {
 
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
-                _id: LectureId,
+                _id:Types.ObjectId.createFromHexString(LectureId!),
             },
             update: {
                 $addToSet: { viewedByUsers: req.user?._id }
             }
         })
+
 
         if (!Lecture) {
             throw new NotFoundException("No course found matching criteria");
