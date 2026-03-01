@@ -54,8 +54,8 @@ class lectureService {
                 LectureName
             },
         })
-        
-        if(checkLectureName){
+
+        if (checkLectureName) {
             throw new ConflictException("this leacture name already used by in another lecture")
         }
 
@@ -81,18 +81,18 @@ class lectureService {
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
                 _id: LectureId,
-                Status:StatusEnum.Active
+                Status: StatusEnum.Active
 
             },
             update: {
-                Status:StatusEnum.InActive
+                Status: StatusEnum.InActive
             }
         })
         if (!Lecture) {
             throw new NotFoundException("sorry failed to freeze the lecture as it must be in IActive status")
         }
 
-        return SuccesResponse({ res, data:Lecture });
+        return SuccesResponse({ res, data: Lecture });
     }
 
     // perfect test and everything is ok
@@ -102,16 +102,16 @@ class lectureService {
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
                 _id: LectureId,
-                Status:StatusEnum.InActive
+                Status: StatusEnum.InActive
             },
             update: {
-                Status:StatusEnum.Active
+                Status: StatusEnum.Active
             },
         })
         if (!Lecture) {
             throw new BadRequestException("sorry failed to Restore the lecture check if its already deleted")
         }
-        return SuccesResponse({ res , data:Lecture});
+        return SuccesResponse({ res, data: Lecture });
     }
 
     // perfect test and everything is ok
@@ -132,7 +132,30 @@ class lectureService {
 
     // perfect test and everything is ok
     GetLecture = async (req: Request, res: Response, next: NextFunction) => {
-        const { LectureId } = req.params
+        const { LectureId, CourseId } = req.params
+
+        const [checkEnrollLecture, checkCourseEnroll] = await Promise.all([
+
+            await this.EnrollmentModel.find({
+                filter: {
+                    LectureId: Types.ObjectId.createFromHexString(LectureId!),
+                }
+            }),
+
+            await this.EnrollmentModel.find({
+                filter: {
+                    courseId: Types.ObjectId.createFromHexString(CourseId!),
+                }
+            }),
+
+        ])
+
+        if (!checkEnrollLecture && !checkCourseEnroll) {
+            throw new ConflictException("You are not enrolled in this Lecture or the Course")
+        }
+
+       
+
 
         const Lecture = await this.LectureModel.findOne({
             filter: {
@@ -158,7 +181,6 @@ class lectureService {
         const { LectureId } = req.params
         const { Code } = req.body
 
-        console.log(Code,LectureId)
 
         const checkenrolled = await this.EnrollmentModel.findOne({
             filter: {
@@ -234,7 +256,7 @@ class lectureService {
         return SuccesResponse({ res })
     }
 
-    
+
     playlecture = async (req: Request, res: Response, next: NextFunction) => {
         const { LectureId, CourseId } = req.params
 
@@ -262,10 +284,10 @@ class lectureService {
 
         const Lecture = await this.LectureModel.findOneAndupdate({
             filter: {
-                _id:Types.ObjectId.createFromHexString(LectureId!),
+                _id: Types.ObjectId.createFromHexString(LectureId!),
             },
             update: {
-                $addToSet: { viewedByUsers: req.user?._id }
+                $addToSet: { viewedBy: req.user?._id }
             }
         })
 
@@ -278,6 +300,6 @@ class lectureService {
     }
 
 
-   
+
 }
 export default new lectureService
