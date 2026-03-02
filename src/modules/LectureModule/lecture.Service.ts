@@ -154,7 +154,7 @@ class lectureService {
             throw new ConflictException("You are not enrolled in this Lecture or the Course")
         }
 
-        
+
         const Lecture = await this.LectureModel.findOne({
             filter: {
                 _id: LectureId,
@@ -172,7 +172,11 @@ class lectureService {
             throw new NotFoundException("No course found matching criteria");
         }
 
-        const No_Students_NotPlayed = (checkCourseEnroll.length - (Lecture.viewedBy?.length || 0))
+        let No_Students_NotPlayed = 0
+
+        if (Lecture?.viewedBy?.length) {
+            No_Students_NotPlayed = (checkCourseEnroll.length - Lecture.viewedBy?.length)
+        }
 
         return SuccesResponse({ res, data: { Lecture, No_Students_NotPlayed } });
     }
@@ -298,7 +302,6 @@ class lectureService {
 
         return SuccesResponse({ res, data: Lecture });
     }
-
 
 
 }
