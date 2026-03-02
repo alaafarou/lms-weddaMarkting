@@ -10,7 +10,7 @@ import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
 import { ExamModule, IExam } from "../../Schema/Exam";
 import { CourseModel } from "../../Schema/Course";
 import { SectionModel } from "../../Schema/Section";
-import { SubmissionModel } from "../../Schema/Submition";
+import { SubmissionHydratedDocument, SubmissionModel } from "../../Schema/Submition";
 import { roleEnum, UserModel } from "../../Schema/UserModel";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
@@ -344,7 +344,7 @@ class ExamService {
                 options: {
                     populate: [{
                         path: "courseId",
-                        select: "name image "
+                        select: "name image ",
                     }]
                 },
             }),
@@ -364,19 +364,12 @@ class ExamService {
                 options: {
                     populate: [{
                         path: 'Exam',
-                        select: "name"
-                    }]
+                        select: "name",
+                    }],
+                    sort: { updatedAt: -1 },
                 }
             })
         ])
-
-        console.log({ Courses, LecturesViewed, Submitted })
-
-        // if (!Courses || !LecturesViewed || !Submitted) {
-        //     throw new BadRequestException("sorry student doesnt have any status to show")
-
-        // }
-
 
         const Grades = Submitted.map(SubmittedExam => SubmittedExam.grade) || []
 
@@ -420,12 +413,20 @@ class ExamService {
             ? Math.round((LecturesViewed / TotalLectures) * 100)
             : 0;
 
-        // 2. حساب نسبة دخول الامتحانات
         const AverageExams = TotalExams > 0
             ? Math.round((Submitted.length / TotalExams) * 100)
             : 0;
 
-        /// All of the exams he should take 
+        const last_submission = [] 
+        for (let i = 0; i < 5; i++) {
+            if (Submitted[i]) {
+                const current_submition_Data: any = {
+                    Exam: Submitted[i]?.Exam,
+                    Grades:Submitted[i]?.grade
+                }
+                last_submission.push(current_submition_Data)
+            }
+        }
 
         return SuccesResponse({
             res, data: {
@@ -435,7 +436,8 @@ class ExamService {
                 TotalSubmitedExams: Submitted.length,
                 LecturesViewed,
                 maxGrade,
-                GradeAveragePercentage
+                GradeAveragePercentage,
+                last_submission
             }
         })
     }
