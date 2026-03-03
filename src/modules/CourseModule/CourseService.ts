@@ -350,7 +350,7 @@ class CourseService {
             throw new BadRequestException("failed to Enrolle Student")
         }
 
-        return SuccesResponse({ res });
+        return SuccesResponse({ res,data:user });
     };
 
 
