@@ -372,7 +372,7 @@ class CodeService {
             return {
                 Code: Code.Code,
                 CodeStatus: Code.CodeStatus,
-                lecture_id: Code.lectureId?._id || null,
+                code_id: Code._id || null,
                 Usedby: Code.Usedby?.email || null,
                 LectureName: Code.lectureId?.LectureName! || null,
                 CourseName: Code.lectureId?.CourseId?.name || null,
@@ -389,7 +389,7 @@ class CodeService {
             result:falttendCodeData,
             currentpage:Codes.currentpage,
             size:Codes.size,
-            
+
         }
         
         return SuccesResponse({ res, data:Result });
