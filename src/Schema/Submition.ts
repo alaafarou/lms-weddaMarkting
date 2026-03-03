@@ -59,5 +59,5 @@ export const SubmissionSchema = new Schema<ISubmition>({
 
 
 
-export type SchemaHydratedDocument = HydratedDocument<ISubmition>
+export type SubmissionHydratedDocument = HydratedDocument<ISubmition>
 export const SubmissionModel = model<ISubmition>("submission", SubmissionSchema)

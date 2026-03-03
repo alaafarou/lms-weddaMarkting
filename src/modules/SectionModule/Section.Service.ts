@@ -162,7 +162,7 @@ class SectionService {
             }
         })
         if (!section) {
-            throw new BadRequestException("sorry failed to Deles")
+            throw new BadRequestException("sorry failed to find the section with this id in this course")
         }
 
         const LectureFilter: any = {
