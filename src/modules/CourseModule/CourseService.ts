@@ -371,10 +371,10 @@ class CourseService {
                 course: Types.ObjectId.createFromHexString(CourseId!)
             },
             update: {
-                viewedBy: { $pull: Types.ObjectId.createFromHexString(StudentID!) }
+                $pull: { viewedBy: Types.ObjectId.createFromHexString(StudentID!) }
             }
         })
-        
+
         if (!CheckCourse) {
             throw new NotFoundException("sorry this Student not enrolled in this Course")
         }
