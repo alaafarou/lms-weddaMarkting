@@ -372,6 +372,7 @@ class CodeService {
             return {
                 Code: Code.Code,
                 CodeStatus: Code.CodeStatus,
+                lecture_id: Code.lectureId?._id || null,
                 Usedby: Code.Usedby?.email || null,
                 LectureName: Code.lectureId?.LectureName! || null,
                 CourseName: Code.lectureId?.CourseId?.name || null,
@@ -387,7 +388,8 @@ class CodeService {
             countdoc:Codes.countdoc,
             result:falttendCodeData,
             currentpage:Codes.currentpage,
-            size:Codes.size
+            size:Codes.size,
+            
         }
         
         return SuccesResponse({ res, data:Result });
