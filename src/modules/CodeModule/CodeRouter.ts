@@ -59,5 +59,15 @@ CodeRouter.get("/Grade-Semester-Course",
     CodeService.Grade_Semester_Course
 )
 
+CodeRouter.get("/downloadLecturePrivate",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    CodeService.DonwloadLecturePrivateCodes
+)
+
+CodeRouter.get("/downloadCoursePrivate",
+    Authorization({ AcessRoles: [roleEnum.admin] }),
+    CodeService.DonwloadCoursePrivateCodes
+)
+
 
 export default CodeRouter 
