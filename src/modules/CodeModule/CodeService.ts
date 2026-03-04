@@ -314,7 +314,7 @@ class CodeService {
         const Codes = await this.CodeModel.find({
             filter: {
                 CodeType: CodeTypeEnum.Private,
-                CourseId: { $exists: false }
+                lectureId: { $exists: false }
             },
             options: {
                 populate: [
