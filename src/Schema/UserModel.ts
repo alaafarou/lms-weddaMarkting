@@ -76,6 +76,7 @@ export const userSchema = new Schema<IUser>({
 
   phone: {
     type: String,
+    unique: true,
     required: function (this) {
       return this.role === roleEnum.user
     },
@@ -83,6 +84,7 @@ export const userSchema = new Schema<IUser>({
 
   ParentsPhone: {
     type: String,
+    unique: true,   
   },
 
   Country: {

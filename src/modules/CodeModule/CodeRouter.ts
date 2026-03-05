@@ -60,12 +60,10 @@ CodeRouter.get("/Grade-Semester-Course",
 )
 
 CodeRouter.get("/downloadLecturePrivate",
-    // Authorization({ AcessRoles: [roleEnum.admin] }),
     CodeService.DonwloadLecturePrivateCodes
 )
 
 CodeRouter.get("/downloadCoursePrivate",
-    // Authorization({ AcessRoles: [roleEnum.admin] }),
     CodeService.DonwloadCoursePrivateCodes
 )
 

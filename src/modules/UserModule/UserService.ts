@@ -237,27 +237,16 @@ class UserService {
         const User = await this.UserModel.findOneAndDelete({
             filter: {
                 _id:Types.ObjectId.createFromHexString(UserId!),
-                role: roleEnum.user,
             },
         })
         if (!User) {
             throw new NotFoundException("sorry this user cant be found as it may be already deleted");
         }
 
-        await Promise.all([
+        if(User._id === req.user?._id){
+            throw new BadRequestException("You cannot delete your own account");
+        }
 
-            await this.EnrollmentModel.deleteMany({
-                filter: {
-                    UserId: Types.ObjectId.createFromHexString(UserId!),
-                },
-            }),
-
-            await this.SubmissionModel.deleteMany({
-                filter: {
-                    Student: Types.ObjectId.createFromHexString(UserId!),
-                },
-            })
-        ])
         return SuccesResponse({ res, data: "Student Deleted Succesfully" });
     }
 
