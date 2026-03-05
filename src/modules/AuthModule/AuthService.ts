@@ -108,7 +108,8 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                deletedAt: { $exists: false },
+                Status:StatusEnum.Active,
+                DeletedAt: { $exists: false },
             },
             options: {
                 populate: [
@@ -139,7 +140,8 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                DeletedAt: { $exists: false }
+                DeletedAt: { $exists: false },
+                Status:StatusEnum.Active
             },
             options: {
                 populate: [
@@ -171,7 +173,8 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                deletedAt: { $exists: false },
+                DeletedAt: { $exists: false },
+                Status:StatusEnum.Active,
             },
             options: {
                 populate: [
