@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import {  z } from "zod";
+import { z } from "zod";
 
 export const createLectureValidation = {
     params: z.strictObject({
@@ -22,6 +22,8 @@ export const createLectureValidation = {
                 { message: 'Invalid YouTube URL format' }
             ),
         LectureName: z.string().min(5, "Lecture name must be at least 5 characters").max(100, "Lecture name must not exceed 100 characters"),
+        OptionalUrl: z.string().url('Must be a valid URL').optional(),
+        NameOptionalUrl: z.string().optional()
     }),
 };
 
@@ -49,13 +51,15 @@ export const UpdatelectureValidation = {
                 },
                 { message: 'Invalid YouTube URL format' }
             ).optional(),
-        LectureName:z.string().optional()
-    }).superRefine((Data,ctx)=>{
-        if(!Data.videoUrl && !Data.LectureName){
+        LectureName: z.string().optional(),
+        OptionalUrl: z.string().url('Must be a valid URL').optional(),
+        NameOptionalUrl: z.string().optional()
+    }).superRefine((Data, ctx) => {
+        if (!Data.videoUrl && !Data.LectureName && !Data.OptionalUrl && !Data.NameOptionalUrl) {
             ctx.addIssue({
-                path:["Body"],
-                code:"custom",
-                message:"sorry the body is empty at least one attribute required to update"
+                path: ["Body"],
+                code: "custom",
+                message: "sorry the body is empty at least one attribute required to update"
             })
         }
     }),

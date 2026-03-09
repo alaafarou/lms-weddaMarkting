@@ -8,22 +8,19 @@ import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
 import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo";
 import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code";
-import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory";
-import { CourseModel } from "../../Schema/Course";
 import { StatusEnum } from "../Utilis/Enums/courses";
 
 class lectureService {
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly CodeModel: CodeRepositry = new CodeRepositry(CodeModel)
-    private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
 
 
     constructor() { }
 
     createlecture = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID, CourseId } = req.params
-        const { videoUrl, LectureName } = req.body
+        const { videoUrl, LectureName, OptionalUrl, NameOptionalUrl } = req.body
 
         const SectionId = Types.ObjectId.createFromHexString(SectionID!)
         const courseId = Types.ObjectId.createFromHexString(CourseId!)
@@ -35,6 +32,8 @@ class lectureService {
                     LectureName,
                     SectionId,
                     CourseId: courseId,
+                    OptionalUrl,
+                    NameOptionalUrl,
                     createdBy: req.user?._id!,
                 }
             ]
@@ -47,7 +46,7 @@ class lectureService {
 
     Updatelecture = async (req: Request, res: Response, next: NextFunction) => {
         const { LectureId } = req.params
-        const { videoUrl, LectureName } = req.body
+        const { videoUrl, LectureName, OptionalUrl, NameOptionalUrl } = req.body
 
         const checkLectureName = await this.LectureModel.findOne({
             filter: {
@@ -66,7 +65,10 @@ class lectureService {
             },
             update: {
                 videoUrl,
-                LectureName
+                LectureName,
+                OptionalUrl,
+                NameOptionalUrl,
+                UpdatedBy: req.user?._id!,
             },
         })
         if (!lecture) {
