@@ -49,7 +49,8 @@ export interface IUser {
   changeCredentialsTime?: Date
   profileimage?: String,
 
-  Status?: StatusEnum
+  Status?: StatusEnum,
+  Session_id?: string,
 
   Courses: ICourse[]
   Otps: IOtp[]
@@ -62,6 +63,8 @@ export const userSchema = new Schema<IUser>({
     type: String,
     required: true
   },
+
+  Session_id:String,
 
   password: {
     type: String,

@@ -89,7 +89,7 @@ export const GetTokenKeys = async (
 
 
 
-export const GenerateCredentials = async (User: UserHydratedDocument) => {
+export const GenerateCredentials = async ({User,Session_id}:{User: UserHydratedDocument, Session_id: string}) => {
 
     const Signature = await GetSignatureslevel(User.role)
     /// will detect if its bearer or system
@@ -98,7 +98,7 @@ export const GenerateCredentials = async (User: UserHydratedDocument) => {
 
 
     const AcessToken = await GenerateToken({
-        Payload: { _id: User._id },
+        Payload: { _id: User._id ,Session_id},
         secret: TokenSecretKey.Acess_key,
         options: {
             expiresIn: Number(process.env.ACESS_TOKEN_EXPIRESIN as String),
@@ -107,7 +107,7 @@ export const GenerateCredentials = async (User: UserHydratedDocument) => {
     })
 
     const RefreshToken = await GenerateToken({
-        Payload: { _id: User._id },
+        Payload: { _id: User._id,Session_id},
         secret: TokenSecretKey.refresh_key,
         options: {
             expiresIn: Number(process.env.REFRESH_TOKEN_EXPIRESIN as String),
@@ -165,6 +165,10 @@ export const Decoded = async ({ Authorization,
 
     if (!User) {
         throw new NotFoundException(" this account is not created")
+    }
+
+    if(decoded.Session_id !== User.Session_id){
+        throw new UnauthorizedException(" this account loged in on another device")
     }
 
     if (User.changeCredentialsTime && User.changeCredentialsTime?.getTime() > decoded.iat * 1000) {

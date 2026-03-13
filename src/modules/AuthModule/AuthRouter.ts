@@ -19,7 +19,6 @@ AuthRouter.post("/login", validation(loginValidation), AuthService.login)
 
 AuthRouter.post("/AddAdmin", validation(AddAdminValidation), AuthService.AddAdmin)
 
-AuthRouter.get("/Acesstoken", validation(loginValidation), AuthService.login)
 
 export default AuthRouter
 

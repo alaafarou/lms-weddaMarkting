@@ -7,11 +7,11 @@ export interface ILecture {
     CourseId: Types.ObjectId; // ref to Course
     videoUrl: string;
     SectionId: Types.ObjectId,
+    OptionalUrl?: string;
+    NameOptionalUrl?: string;
 
     viewedBy?: Types.ObjectId[];  // Add this
 
-
- 
     Status:StatusEnum,
     createdBy?: Types.ObjectId;
     createdAt?: Date;
@@ -23,9 +23,11 @@ export const LectureSchema = new Schema<ILecture>({
 
     videoUrl: { type: String, required: true },
     viewedBy: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
+    OptionalUrl:{ type: String},
+    NameOptionalUrl:{ type: String},
 
 
-    CourseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    CourseId:  { type: Schema.Types.ObjectId, ref: "Course", required: true },
     SectionId: { type: Schema.Types.ObjectId, ref: "Section", required: true },
 
 
@@ -39,9 +41,8 @@ export const LectureSchema = new Schema<ILecture>({
         default: StatusEnum.Active
     },
 
-
-
 }, { timestamps: true });
+
 LectureSchema.index({ _id: 1, 'viewedBy': 1 });
 
 export type LectureHydratedDocuments = HydratedDocument<ILecture>

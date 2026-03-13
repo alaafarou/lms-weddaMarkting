@@ -290,16 +290,15 @@ class UserService {
         const user = await this.UserModel.findOne({
             filter: {
                 _id: req.user?._id,
-                DeletedAt: { $exists: false }
+                DeletedAt: { $exists: false },
+                Status: StatusEnum.Active
             },
         });
         if (!user) {
             throw new NotFoundException("User not found");
         }
-        const Credentials = await GenerateCredentials(req.user as UserHydratedDocument)
-
+        const Credentials = await GenerateCredentials({User:req.user as UserHydratedDocument, Session_id: req.user?.Session_id as string})
         await createRevokeToken(req)
-
         return SuccesResponse({ res, data: { token: Credentials } });
     };
 
@@ -318,6 +317,8 @@ class UserService {
         }
         return SuccesResponse({ res, data: { ISEnrollend } })
     }
+
+  
 
 }
 

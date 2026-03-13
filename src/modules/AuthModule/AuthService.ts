@@ -12,6 +12,7 @@ import { GenerateCredentials } from "../Utilis/Security/security";
 import { OtpRepositry } from "../Utilis/DatabasePattern/OtpResposatory";
 import { OtpModel } from "../../Schema/OtpModel";
 import { StatusEnum } from "../Utilis/Enums/courses";
+import { v4 as uuidv4 } from 'uuid';
 
 
 
@@ -210,6 +211,8 @@ class AuthenticationService {
     login = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
 
         const { email, password } = req.body
+        const Session_id = uuidv4()
+
 
         const User = await this.UserModel.findOne({
             filter: {
@@ -230,11 +233,24 @@ class AuthenticationService {
             throw new BadRequestException("sorry wrong password or Email")
         }
 
-        const Credentials = await GenerateCredentials(User as UserHydratedDocument)
+        await this.UserModel.findOneAndupdate({
+            filter: {
+                _id: User._id,
+                 Status:StatusEnum.Active
+
+            },
+            update: {
+                Session_id
+            }
+        })
+
+        const Credentials = await GenerateCredentials({ User: User as UserHydratedDocument, Session_id })
 
         return SuccesResponse<loginResponse>({ res, statuscode: 200, data: { Credentials, user: User } })
 
     }
+
+    
 
 }
 export default new AuthenticationService();

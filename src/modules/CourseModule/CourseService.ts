@@ -366,7 +366,7 @@ class CourseService {
                 new: false
             }
         })
-        const lectures = await this.LectureModel.updateMany({
+        await this.LectureModel.updateMany({
             filter: {
                 CourseId: Types.ObjectId.createFromHexString(CourseId!)
             },

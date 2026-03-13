@@ -6,6 +6,7 @@ import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
 import { AddStudentValidation, DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, ProfileValidation, restoreUserValidation, updatepasswordValidaton, updateProfileValidation } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
+import { loginValidation } from "../AuthModule/AuthValidation";
 
 const UserRouter = Router()
 
@@ -99,6 +100,15 @@ UserRouter.get("/ISEnrollend/:CourseId",
     validation(ISEnrollendValidation),
     Authorization({ AcessRoles: [roleEnum.user] }),
     UserService.ISEnrollend)
+
+
+UserRouter.get("/Acesstoken",
+    Authorization({
+        AcessRoles: [roleEnum.admin, roleEnum.user],
+        TokenType: TokenEnum.RefreshToken
+    }), 
+    UserService.GetAccessToken)
+
 
 
 
