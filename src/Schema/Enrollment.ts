@@ -1,5 +1,5 @@
 import  { HydratedDocument, model, Schema, Types } from "mongoose";
-import { IUser, UserHydratedDocument } from "./UserModel";
+import { IUser } from "./UserModel";
 
 
 export interface IEnrollment {

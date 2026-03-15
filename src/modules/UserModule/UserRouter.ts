@@ -102,7 +102,7 @@ UserRouter.get("/ISEnrollend/:CourseId",
     UserService.ISEnrollend)
 
 
-UserRouter.get("/Acesstoken",
+UserRouter.post("/Acesstoken",
     Authorization({
         AcessRoles: [roleEnum.admin, roleEnum.user],
         TokenType: TokenEnum.RefreshToken

@@ -1,16 +1,14 @@
 import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
 import type { Request, Response, NextFunction } from "express";
 import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory";
-import { CourseRepositry } from "../Utilis/DatabasePattern/CourseReposatory";
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { Types } from "mongoose";
 import { SuccesResponse } from "../Utilis/response/SucessResponse";
 import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry";
 import { ExamModule, IExam } from "../../Schema/Exam";
-import { CourseModel } from "../../Schema/Course";
 import { SectionModel } from "../../Schema/Section";
-import { SubmissionHydratedDocument, SubmissionModel } from "../../Schema/Submition";
+import {  SubmissionModel } from "../../Schema/Submition";
 import { roleEnum, UserModel } from "../../Schema/UserModel";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
@@ -27,7 +25,6 @@ import { console } from "inspector";
 class ExamService {
 
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
-    private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel)
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
     private readonly SubmissionModel: SubmissionReposatory = new SubmissionReposatory(SubmissionModel)
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
