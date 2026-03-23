@@ -5,10 +5,6 @@ import { BadRequestException, ConflictException, NotFoundException } from "../Ut
 import { IMultter } from "../Utilis/multer/cloud.multer"
 import { CourseModel } from "../../Schema/Course"
 import { Types } from "mongoose"
-import { SectionRepositry } from "../Utilis/DatabasePattern/SectionReposatory"
-import { SectionModel } from "../../Schema/Section"
-import { ExamRepositry } from "../Utilis/DatabasePattern/ExamReposatory"
-import { ExamModule } from "../../Schema/Exam"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo"
@@ -18,17 +14,17 @@ import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code"
 import { UserRepositry } from "../Utilis/DatabasePattern/UserRepositry"
 import { roleEnum, UserModel } from "../../Schema/UserModel"
 import { StatusEnum } from "../Utilis/Enums/courses"
+import { CleanRepositry } from "../Utilis/DatabasePattern/CleanRepo"
+import { CleanJobKind, CleanJobStatus, CleanModel } from "../../Schema/Clean"
 
 class CourseService {
 
     private readonly CourseModel: CourseRepositry = new CourseRepositry(CourseModel);
-    private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
-    private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly CodeModel: CodeRepositry = new CodeRepositry(CodeModel)
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
-
+    private readonly CleanModel: CleanRepositry = new CleanRepositry(CleanModel)
     constructor() { }
 
     // perfect test and everything is ok
@@ -294,7 +290,7 @@ class CourseService {
         const createEnroll = await this.EnrollmentModel.create({
             data: [
                 {
-                    courseId:checkCourse._id,
+                    courseId: checkCourse._id,
                     UserId: req.user?._id!
                 }
             ]
@@ -350,7 +346,7 @@ class CourseService {
             throw new BadRequestException("failed to Enrolle Student")
         }
 
-        return SuccesResponse({ res,data:user });
+        return SuccesResponse({ res, data: user });
     };
 
 
@@ -390,7 +386,7 @@ class CourseService {
 
         const course = await this.CourseModel.findOneAndupdate({
             filter: {
-                _id:Types.ObjectId.createFromHexString(CourseId!),
+                _id: Types.ObjectId.createFromHexString(CourseId!),
                 Status: StatusEnum.Active,
             },
             update: {
@@ -402,7 +398,7 @@ class CourseService {
             throw new NotFoundException("sorry failed to freeze the course as it must be in IActive status")
         }
 
-        return SuccesResponse({ res,data:course });
+        return SuccesResponse({ res, data: course });
     }
 
     // perfect test and everything is ok
@@ -421,17 +417,27 @@ class CourseService {
         if (!course) {
             throw new BadRequestException("sorry failed to Restore the course check if its already deleted")
         }
-        return SuccesResponse({ res,data:course });
+        return SuccesResponse({ res, data: course });
     }
 
     // perfect test and everything is ok
     DeleteCourse = async (req: Request, res: Response, next: NextFunction) => {
         const { CourseId } = req.params
 
+        await this.CleanModel.create({
+            data: [
+                {
+                    kind: CleanJobKind.course,
+                    rootId: Types.ObjectId.createFromHexString(CourseId!) as Types.ObjectId,
+                    status: CleanJobStatus.pending,
+                    requestedBy: req.user?._id!,
+                }
+            ]
+        })
 
         const course = await this.CourseModel.findOneAndDelete({
             filter: {
-                _id:Types.ObjectId.createFromHexString(CourseId!),
+                _id: Types.ObjectId.createFromHexString(CourseId!),
             },
         })
 
@@ -439,34 +445,10 @@ class CourseService {
             throw new BadRequestException("sorry failed to Delete the course as it must be in IActive status")
         }
 
-        await Promise.all([
 
-            this.SectionModel.deleteMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!)
-                },
-            }),
 
-            this.EnrollmentModel.deleteMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!)
-                },
-            }),
 
-            this.ExamModel.deleteMany({
-                filter: {
-                    courseId: Types.ObjectId.createFromHexString(CourseId!)
-                },
-            }),
-
-            this.LectureModel.deleteMany({
-                filter: {
-                    course: Types.ObjectId.createFromHexString(CourseId!)
-                },
-            }),
-        ])
-
-        return SuccesResponse({ res , message:"Done the Course is Deleted" })
+        return SuccesResponse({ res, message: "Done the Course is Deleted" })
     }
 
 

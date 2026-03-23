@@ -11,6 +11,8 @@ import { ExamModule } from "../../Schema/Exam"
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory"
 import { LectureModel } from "../../Schema/lecture"
 import { StatusEnum } from "../Utilis/Enums/courses"
+import { CleanRepositry } from "../Utilis/DatabasePattern/CleanRepo"
+import { CleanJobKind, CleanJobStatus, CleanModel } from "../../Schema/Clean"
 
 
 
@@ -20,7 +22,7 @@ class SectionService {
     private readonly SectionModel: SectionRepositry = new SectionRepositry(SectionModel)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly ExamModel: ExamRepositry = new ExamRepositry(ExamModule)
-
+    private readonly CleanModel: CleanRepositry = new CleanRepositry(CleanModel)
 
     constructor() { }
 
@@ -74,33 +76,28 @@ class SectionService {
     DeleteSection = async (req: Request, res: Response, next: NextFunction) => {
         const { SectionID } = req.params
 
-        const SectionId = Types.ObjectId.createFromHexString(SectionID!)
+        await this.CleanModel.create({
+            data: [
+                {
+                    kind: CleanJobKind.section,
+                    rootId: Types.ObjectId.createFromHexString(SectionID!) as Types.ObjectId,
+                    status: CleanJobStatus.pending,
+                    requestedBy: req.user?._id!,
+                }
+            ]
+        })
 
         const section = await this.SectionModel.findOneAndDelete({
             filter: {
                 _id: SectionID,
             },
         })
+
         if (!section) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }
 
-        const [lectures, exams] = await Promise.all([
-            this.LectureModel.deleteMany({
-                filter: {
-                    SectionId,
-                },
-            }),
-            this.ExamModel.deleteMany({
-                filter: {
-                    SectionID: SectionId
-                },
-            }),
-        ])
 
-        if (!lectures || !exams) {
-            throw new BadRequestException("sorry failed to Delete the exams and lectures of the Section")
-        }
         return SuccesResponse({ res })
     }
 
@@ -167,30 +164,29 @@ class SectionService {
 
         const LectureFilter: any = {
             SectionId: section._id,
-            
+
         }
 
         const ExamFilter: any = {
             SectionID: section._id,
         }
 
-        if(Status)
-        {
-           LectureFilter.Status = Status
-           ExamFilter.Status = Status 
+        if (Status) {
+            LectureFilter.Status = Status
+            ExamFilter.Status = Status
         }
 
 
         const [lectures, exams] = await Promise.all([
             await this.LectureModel.find({
-                filter:LectureFilter,
+                filter: LectureFilter,
                 options: {
                     lean: true
                 },
                 select: "LectureName Status"
             }),
             await this.ExamModel.find({
-                filter:ExamFilter, 
+                filter: ExamFilter,
                 select: "name Status",
                 options: {
                     lean: true
@@ -214,6 +210,7 @@ class SectionService {
         const sections = await this.SectionModel.find({
             filter: filter
         })
+        
         if (!sections) {
             throw new BadRequestException("sorry failed to Delete the section as it must be in INActive status")
         }

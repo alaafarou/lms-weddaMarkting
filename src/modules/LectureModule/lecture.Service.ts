@@ -9,12 +9,14 @@ import { EnrollmentModel } from "../../Schema/Enrollment";
 import { CodeRepositry } from "../Utilis/DatabasePattern/CodeRepo";
 import { CodeModel, CodeStatusEnum, CodeTypeEnum } from "../../Schema/Code";
 import { StatusEnum } from "../Utilis/Enums/courses";
+import { CleanRepositry } from "../Utilis/DatabasePattern/CleanRepo";
+import { CleanJobKind, CleanJobStatus, CleanModel } from "../../Schema/Clean";
 
 class lectureService {
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly CodeModel: CodeRepositry = new CodeRepositry(CodeModel)
-
+    private readonly CleanModel: CleanRepositry = new CleanRepositry(CleanModel)
 
     constructor() { }
 
@@ -119,6 +121,17 @@ class lectureService {
     // perfect test and everything is ok
     DeleteLecture = async (req: Request, res: Response, next: NextFunction) => {
         const { LectureId } = req.params
+
+        await this.CleanModel.create({
+            data: [
+                {
+                    kind: CleanJobKind.lecture,
+                    rootId: Types.ObjectId.createFromHexString(LectureId!) as Types.ObjectId,
+                    status: CleanJobStatus.pending,
+                    requestedBy: req.user?._id!,
+                }
+            ]
+        })
 
         const Lecture = await this.LectureModel.findOneAndDelete({
             filter: {

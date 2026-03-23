@@ -6,18 +6,20 @@ import { profileimageReponse } from "./UserEntites";
 import { IMultter } from "../Utilis/multer/cloud.multer";
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { UserResponse } from "../AuthModule/AuthEntites";
-import { GenerateCredentials,  revokeRefreshTokenRotation, revokeTokenAndClearSession } from "../Utilis/Security/security";
+import { GenerateCredentials, revokeRefreshTokenRotation, revokeTokenAndClearSession } from "../Utilis/Security/security";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
 
 import { Types } from "mongoose";
 import { CountryEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
+import { CleanJobKind, CleanJobStatus, CleanModel } from "../../Schema/Clean";
+import { CleanRepositry } from "../Utilis/DatabasePattern/CleanRepo";
 
 class UserService {
 
     private UserModel: UserRepositry = new UserRepositry(UserModel)
     private EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
-
+    private CleanModel: CleanRepositry = new CleanRepositry(CleanModel)
 
     constructor() { }
 
@@ -210,6 +212,18 @@ class UserService {
                 _id: Types.ObjectId.createFromHexString(UserId!),
             },
         })
+
+        await this.CleanModel.create({
+            data: [
+                {
+                    kind: CleanJobKind.User,
+                    rootId: User?._id as Types.ObjectId,
+                    status: CleanJobStatus.pending,
+                    requestedBy: req.user?._id!,
+                }
+            ]
+        })
+
         if (!User) {
             throw new NotFoundException("sorry this user cant be found as it may be already deleted");
         }

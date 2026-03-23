@@ -19,6 +19,8 @@ import { StatusEnum } from "../Utilis/Enums/courses";
 import { LectureRepositry } from "../Utilis/DatabasePattern/lectureReposatory";
 import { LectureModel } from "../../Schema/lecture";
 import { console } from "inspector";
+import { CleanRepositry } from "../Utilis/DatabasePattern/CleanRepo";
+import { CleanJobKind, CleanJobStatus, CleanModel } from "../../Schema/Clean";
 
 
 
@@ -30,6 +32,7 @@ class ExamService {
     private readonly UserModel: UserRepositry = new UserRepositry(UserModel)
     private readonly EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
     private readonly QuestionModel: QuestionRepositry = new QuestionRepositry(QuestionModel)
+    private readonly CleanModel: CleanRepositry = new CleanRepositry(CleanModel)
     private readonly LectureModel: LectureRepositry = new LectureRepositry(LectureModel)
     constructor() { }
 
@@ -443,28 +446,23 @@ class ExamService {
     DeleteExame = async (req: Request, res: Response, next: NextFunction) => {
         const { ExamID } = req.params
 
+        await this.CleanModel.create({
+            data: [
+                {
+                    kind: CleanJobKind.exam,
+                    rootId: Types.ObjectId.createFromHexString(ExamID!) as Types.ObjectId,
+                    status: CleanJobStatus.pending,
+                    requestedBy: req.user?._id!,
+                }
+            ]
+        })
+
         const Exam = await this.ExamModel.findOneAndDelete({
             filter: {
                 _id: Types.ObjectId.createFromHexString(ExamID!),
             }
         })
-
-        const [Submissions, questions] = await Promise.all(
-            [
-                this.SubmissionModel.deleteMany({
-                    filter: {
-                        Exam: Types.ObjectId.createFromHexString(ExamID!),
-                    }
-                }),
-
-                this.QuestionModel.deleteMany({
-                    filter: {
-                        ExamID: Types.ObjectId.createFromHexString(ExamID!),
-                    }
-                })
-            ]
-        )
-
+        
         if (!Exam) {
             throw new BadRequestException("Error deleting exam")
         }

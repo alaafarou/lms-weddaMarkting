@@ -84,6 +84,24 @@ class CleanService {
         }
     }
 
+    private async deleteUser({Student_id}: {Student_id: Types.ObjectId}): Promise<void> {
+        await Promise.all([
+            this.SubmissionModel.deleteMany({
+                filter: { Student: Student_id },
+            }),
+
+            this.EnrollmentModel.deleteMany({
+                filter: { UserId:Student_id },
+            }),
+
+            this.CodeModel.deleteMany({
+                filter: { Usedby: Student_id },
+            }),
+        ]);
+    }
+
+
+
     private async deleteExam(args: {
         courseId?: Types.ObjectId;
         sectionId?: Types.ObjectId;
@@ -171,8 +189,8 @@ class CleanService {
                 case CleanJobKind.lecture:
                     await this.deleteLecture({ lectureId: job.rootId });
                     break;
-                case CleanJobKind.book:
-                    console.warn(`[cleanJobsCron] book purge not implemented for job ${job._id}`);
+                case CleanJobKind.User:
+                    await this.deleteUser({ Student_id: job.rootId });
                     break;
                 default:
                     throw new Error(`Unknown CleanJobKind: ${job.kind}`);
