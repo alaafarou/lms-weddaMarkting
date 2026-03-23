@@ -6,12 +6,10 @@ import { profileimageReponse } from "./UserEntites";
 import { IMultter } from "../Utilis/multer/cloud.multer";
 import { BadRequestException, ConflictException, NotFoundException } from "../Utilis/response/ErrorResponse";
 import { UserResponse } from "../AuthModule/AuthEntites";
-import { createRevokeToken, GenerateCredentials, logoutEnum } from "../Utilis/Security/security";
-import { CompareHash, GenerateHash } from "../Utilis/Security/hash";
+import { GenerateCredentials,  revokeRefreshTokenRotation, revokeTokenAndClearSession } from "../Utilis/Security/security";
 import { EnrollmentRepositry } from "../Utilis/DatabasePattern/EnrollmentRepo";
 import { EnrollmentModel } from "../../Schema/Enrollment";
-import { SubmissionReposatory } from "../Utilis/DatabasePattern/SubmitExamResposatory";
-import { SubmissionModel } from "../../Schema/Submition";
+
 import { Types } from "mongoose";
 import { CountryEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
 
@@ -19,7 +17,6 @@ class UserService {
 
     private UserModel: UserRepositry = new UserRepositry(UserModel)
     private EnrollmentModel: EnrollmentRepositry = new EnrollmentRepositry(EnrollmentModel)
-    private SubmissionModel: SubmissionReposatory = new SubmissionReposatory(SubmissionModel)
 
 
     constructor() { }
@@ -129,56 +126,30 @@ class UserService {
 
 
 
-    updatepassword = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { password, newpassword, flag } = req.body
-        if (! await CompareHash({ plaintext: password, HashedValue: req.user?.password as string })) {
-            throw new BadRequestException("this password is wrong ")
-        }
-        let updateData: any = {}
-        switch (flag) {
-            case logoutEnum.AllDevices:
-                updateData.changeCredentialsTime = new Date()
-                break;
-            default:
-                await createRevokeToken(req)
-                break;
-        }
-        const User = await this.UserModel.findOneAndupdate({
-            filter: {
-                _id: req.user?._id
-            },
-            update: {
-                password: await GenerateHash({ plaintext: newpassword })
-            }
-        })
-        if (!User) {
-            throw new BadRequestException("failed to update the user")
-        }
-        return SuccesResponse<UserResponse>({ res, data: { user: User } })
-    }
+    // updatepassword = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    //     const { password, newpassword } = req.body
+    //     if (! await CompareHash({ plaintext: password, HashedValue: req.user?.password as string })) {
+    //         throw new BadRequestException("this password is wrong ")
+    //     }
+    //     await revokeTokenAndClearSession(req)
+
+    //     const User = await this.UserModel.findOneAndupdate({
+    //         filter: {
+    //             _id: req.user?._id
+    //         },
+    //         update: {
+    //             password: await GenerateHash({ plaintext: newpassword }),
+    //         }
+    //     })
+    //     if (!User) {
+    //         throw new BadRequestException("failed to update the user")
+    //     }
+    //     return SuccesResponse<UserResponse>({ res, data: { user: User } })
+    // }
 
     logout = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const { flag } = req.body
-        let statuscode = 200
-        switch (flag) {
-            case logoutEnum.AllDevices:
-                await this.UserModel.updateOne({
-                    filter: {
-                        _id: req.user?._id
-                    },
-                    update: {
-                        changeCredentialsTime: new Date()
-                    }
-                })
-
-                break;
-
-            default:
-                await createRevokeToken(req)
-                statuscode = 201
-                break;
-        }
-
+        let statuscode = 201
+        await revokeTokenAndClearSession(req)
         return SuccesResponse({ res, statuscode })
     }
 
@@ -187,7 +158,7 @@ class UserService {
         const { UserId } = req.params;
         const targetUser = await this.UserModel.findOneAndupdate({
             filter: {
-                _id:Types.ObjectId.createFromHexString(UserId!),
+                _id: Types.ObjectId.createFromHexString(UserId!),
                 DeletedAt: { $exists: true },
                 Status: StatusEnum.InActive
 
@@ -206,7 +177,7 @@ class UserService {
         }
 
 
-        return SuccesResponse({ res, data:targetUser });
+        return SuccesResponse({ res, data: targetUser });
     }
 
 
@@ -216,7 +187,7 @@ class UserService {
 
         const User = await this.UserModel.findOneAndupdate({
             filter: {
-                _id:Types.ObjectId.createFromHexString(UserId!),
+                _id: Types.ObjectId.createFromHexString(UserId!),
                 DeletedAt: { $exists: false },
                 Status: StatusEnum.Active
             },
@@ -236,14 +207,14 @@ class UserService {
         const { UserId } = req.params;
         const User = await this.UserModel.findOneAndDelete({
             filter: {
-                _id:Types.ObjectId.createFromHexString(UserId!),
+                _id: Types.ObjectId.createFromHexString(UserId!),
             },
         })
         if (!User) {
             throw new NotFoundException("sorry this user cant be found as it may be already deleted");
         }
 
-        if(User._id === req.user?._id){
+        if (User._id === req.user?._id) {
             throw new BadRequestException("You cannot delete your own account");
         }
 
@@ -252,38 +223,38 @@ class UserService {
 
 
     AddStudent = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-            let { email, password, fullname} = req.body
-            const StudentType = StudentEnum.Online
-            const Country = CountryEnum.Egypt
-            const checkuser = await this.UserModel.findOne({
-                filter: {
-                    email,
-                }
-            })
-    
-            if (checkuser) {
-                throw new ConflictException("this user already created")
+        let { email, password, fullname } = req.body
+        const StudentType = StudentEnum.Online
+        const Country = CountryEnum.Egypt
+        const checkuser = await this.UserModel.findOne({
+            filter: {
+                email,
             }
-            const [user] = await this.UserModel.create({
-                data: [
-                    {
-                        fullname,
-                        email,
-                        password,
-                        role:roleEnum.user,
-                        Country,
-                        StudentType,
-                        ...req.body
-                    }
-                ]
-            }) || []
-    
-            if (!user) {
-                throw new BadRequestException("this user already created")
-            }
-    
-            return SuccesResponse<UserResponse>({ res, statuscode: 201, data: { user } })
+        })
+
+        if (checkuser) {
+            throw new ConflictException("this user already created")
         }
+        const [user] = await this.UserModel.create({
+            data: [
+                {
+                    fullname,
+                    email,
+                    password,
+                    role: roleEnum.user,
+                    Country,
+                    StudentType,
+                    ...req.body
+                }
+            ]
+        }) || []
+
+        if (!user) {
+            throw new BadRequestException("this user already created")
+        }
+
+        return SuccesResponse<UserResponse>({ res, statuscode: 201, data: { user } })
+    }
 
 
     GetAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
@@ -297,8 +268,8 @@ class UserService {
         if (!user) {
             throw new NotFoundException("User not found");
         }
-        const Credentials = await GenerateCredentials({User:req.user as UserHydratedDocument, Session_id: req.user?.Session_id as string})
-        await createRevokeToken(req)
+        const Credentials = await GenerateCredentials({ User: req.user as UserHydratedDocument, Session_id: req.user?.Session_id as string })
+        await revokeRefreshTokenRotation(req)
         return SuccesResponse({ res, data: { token: Credentials } });
     };
 
@@ -317,8 +288,6 @@ class UserService {
         }
         return SuccesResponse({ res, data: { ISEnrollend } })
     }
-
-  
 
 }
 

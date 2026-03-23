@@ -46,7 +46,6 @@ export interface IUser {
   DeletedAt?: Date,
   DeletedBy?: Types.ObjectId,
 
-  changeCredentialsTime?: Date
   profileimage?: String,
 
   Status?: StatusEnum,
@@ -128,10 +127,9 @@ export const userSchema = new Schema<IUser>({
   DeletedAt: Date,
   DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
 
-  email: { type: String, required: true },
+  email: { type: String, required: true , index: true, unique: true},
   confrimEmailAt: Date,
 
-  changeCredentialsTime: Date,
   profileimage: String,
 
 }, {

@@ -16,7 +16,7 @@ export const TokenSchema = new Schema<IToken>({
 },{timestamps:true,});
 
 
-TokenSchema.index({ expiredAt: 1 }, { expireAfterSeconds: 0 }) // this means after the when exper
+TokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
 export const TokenModel = model<IToken>('token', TokenSchema);
 export type TokenHydratedDocument = HydratedDocument<IToken>

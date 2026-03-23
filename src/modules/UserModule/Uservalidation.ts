@@ -1,5 +1,4 @@
 import z from "zod";
-import { logoutEnum } from "../Utilis/Security/security";
 import { Types } from "mongoose";
 import { roleEnum } from "../../Schema/UserModel";
 import {  GradeLevelEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/courses";
@@ -7,7 +6,6 @@ import {  GradeLevelEnum, StatusEnum, StudentEnum } from "../Utilis/Enums/course
 
 export const updatepasswordValidaton = {
     body: z.strictObject({
-        flag: z.enum(Object.values(logoutEnum)).default(logoutEnum.CurrentDevice),
         password: z.string()
             .min(8, "Password must be at least 8 characters")
             .max(20, "Password must not exceed 20 characters")
@@ -47,11 +45,7 @@ export const changeroleValidation = {
     })
 }
 
-export const logoutValidation = {
-    body: z.strictObject({
-        flag: z.enum(Object.values(logoutEnum)).default(logoutEnum.CurrentDevice)
-    })
-}
+
 
 
 export const freezeUserValidation = {

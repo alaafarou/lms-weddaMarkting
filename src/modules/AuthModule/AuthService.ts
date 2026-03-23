@@ -207,7 +207,9 @@ class AuthenticationService {
         })
         return SuccesResponse<UserResponse>({ res, statuscode: 200, data: { user: User } })
     }
-
+    // In /Users/alaafarouk342gmial.com/Desktop/Lms Project/src/modules/AuthModule/AuthService.ts, 
+    // login() loads the user with select: "role fullname password", then checks User.Session_id.
+    //  Because Session_id is not selected, the duplicate-login guard can silently fail.
     login = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
 
         const { email, password } = req.body
@@ -221,7 +223,7 @@ class AuthenticationService {
                 Status:StatusEnum.Active
                 
             },
-            select: "role fullname password"
+            select: "role fullname password Session_id",
         })
 
 
@@ -229,20 +231,30 @@ class AuthenticationService {
             throw new NotFoundException("this account doesnt exists")
         }
 
+        if(User.Session_id){
+            throw new ConflictException("this account loged in on another device")
+        }
+
         if (!await CompareHash({ plaintext: password, HashedValue: User.password })) {
             throw new BadRequestException("sorry wrong password or Email")
         }
 
-        await this.UserModel.findOneAndupdate({
+        const LoggedInUser = await this.UserModel.findOneAndupdate({
             filter: {
                 _id: User._id,
-                 Status:StatusEnum.Active
+                Status:StatusEnum.Active,
+                $or: [{ Session_id: null }, { Session_id: { $exists: false } }]
 
             },
             update: {
                 Session_id
-            }
+            },
+            options:{new:true}
         })
+
+        if (!LoggedInUser) {
+            throw new ConflictException("this account loged in on another device")
+        }
 
         const Credentials = await GenerateCredentials({ User: User as UserHydratedDocument, Session_id })
 

@@ -4,9 +4,8 @@ import { fileValidation, folderEnum, localFileUpload } from "../Utilis/multer/cl
 import { Authorization } from "../middlwares/Authentication.middleware";
 import { roleEnum } from "../../Schema/UserModel";
 import { validation } from "../middlwares/validation.middleware";
-import { AddStudentValidation, DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, logoutValidation, ProfileValidation, restoreUserValidation, updatepasswordValidaton, updateProfileValidation } from "./Uservalidation";
+import { AddStudentValidation, DeleteUserValidation, freezeUserValidation, GetAllUsersValidation, ISEnrollendValidation, ProfileValidation, restoreUserValidation, updateProfileValidation } from "./Uservalidation";
 import { TokenEnum } from "../Utilis/Security/security";
-import { loginValidation } from "../AuthModule/AuthValidation";
 
 const UserRouter = Router()
 
@@ -26,14 +25,14 @@ UserRouter.get("/students",
 )
 
 UserRouter.post("/logout",
-    validation(logoutValidation),
+    // validation(logoutValidation),
     Authorization({ AcessRoles: [roleEnum.admin, roleEnum.user] }),
     UserService.logout)
 
-UserRouter.patch("/updatepassword",
-    validation(updatepasswordValidaton),
-    Authorization({ AcessRoles: [roleEnum.user] }),
-    UserService.updatepassword)
+// UserRouter.patch("/updatepassword",
+//     validation(updatepasswordValidaton),
+//     Authorization({ AcessRoles: [roleEnum.user] }),
+//     UserService.updatepassword)
 
 
 UserRouter.get("/Acesstoken", Authorization({

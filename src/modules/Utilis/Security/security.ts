@@ -19,10 +19,6 @@ export enum TokenEnum {
     RefreshToken = "RefreshToken"
 }
 
-export enum logoutEnum {
-    CurrentDevice = "CurrentDevice",
-    AllDevices = "AllDevices"
-}
 
 
 export const GenerateToken = async ({
@@ -171,44 +167,52 @@ export const Decoded = async ({ Authorization,
         throw new UnauthorizedException(" this account loged in on another device")
     }
 
-    if (User.changeCredentialsTime && User.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
-        throw new UnauthorizedException(" this account isnot loged in")
-    }
-
     return { User, decoded }
 
 }
 
-
-export const createRevokeToken = async (Req: Request) => {
-
-    const tokenRepositry = new TokenRepositry(TokenModel)
-    const userRepositry = new UserRepositry(UserModel)
-
-    const user = await userRepositry.findOneAndupdate({
-        filter: {
-            _id: Req.user?.id
-        },
-        update: { Session_id: null },
-        options: { new: true }
-    })
-
-    if(!user){
-        throw new NotFoundException("this account doesnt exists")
+/** When the JWT was issued with `expiresIn`, `exp` is seconds since epoch. */
+export const revokedTokenExpiresAt = (decoded: JwtPayload): Date => {
+    if (decoded.exp != null) {
+        return new Date(decoded.exp * 1000)
     }
+    const iatSec = decoded.iat as number
+    const ttlSec = Number(process.env.REFRESH_TOKEN_EXPIRESIN)
+    return new Date(iatSec * 1000 + ttlSec * 1000)
+}
 
+const insertRevokedToken = async (Req: Request) => {
+    const tokenRepositry = new TokenRepositry(TokenModel)
+    const decoded = Req.decoded as JwtPayload
     const [token] = await tokenRepositry.create({
         data: [{
-            jti: Req.decoded?.jti as string,
-            expiresAt: new Date(new Date(Req.decoded?.iat as number + Number(process.env.REFRESH_TOKEN_EXPIRESIN))),
-            createdBy: Types.ObjectId.createFromHexString(Req.decoded?._id as string)
+            jti: decoded.jti as string,
+            expiresAt: revokedTokenExpiresAt(decoded),
+            createdBy: Types.ObjectId.createFromHexString(String(Req.user?._id))
         }]
     }) || []
 
     if (!token) {
         throw new BadRequestException("failed to revoke this token ")
     }
-
     return token
+}
 
+/** Refresh rotation: blacklist the used refresh token; keep Session_id so the new pair stays valid. */
+export const revokeRefreshTokenRotation = async (Req: Request) => {
+    return insertRevokedToken(Req)
+}
+
+/** Logout current device / invalidate current token: blacklist and clear Session_id. */
+export const revokeTokenAndClearSession = async (Req: Request) => {
+    const userRepositry = new UserRepositry(UserModel)
+    const user = await userRepositry.findOneAndupdate({
+        filter: { _id: Req.user?._id },
+        update: { Session_id: null },
+        options: { new: true }
+    })
+    if (!user) {
+        throw new NotFoundException("this account doesnt exists")
+    }
+    return insertRevokedToken(Req)
 }

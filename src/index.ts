@@ -5,6 +5,7 @@ import AuthRouter from "./modules/AuthModule/AuthRouter"
 import path, { resolve } from "path"
 import { config } from "dotenv"
 import { DBconnection } from "./modules/Utilis/DBconnection"
+import { startCleanJobsCron } from "./cron/cleanJobsCron"
 import { GlobalError } from "./modules/Utilis/response/ErrorResponse"
 import CourseRouter from "./modules/CourseModule/CourseRouter"
 import ExamService from "./modules/ExamModule/Exam.Service"
@@ -34,6 +35,8 @@ const bootsrap = async () => {
 
 
     await DBconnection()
+
+    startCleanJobsCron()
 
     app.use('/upload', express.static(path.join(__dirname, '../src/upload')));
 
