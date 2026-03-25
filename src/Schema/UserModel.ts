@@ -63,7 +63,7 @@ export const userSchema = new Schema<IUser>({
     required: true
   },
 
-  Session_id:String,
+  Session_id: String,
 
   password: {
     type: String,
@@ -84,9 +84,16 @@ export const userSchema = new Schema<IUser>({
     },
   },
 
+  // just for now and will be removed later ok
   ParentsPhone: {
     type: String,
-    unique: true,   
+    default: null,
+    index: {
+      unique: true,
+      partialFilterExpression: {
+        ParentsPhone: { $exists: true, $ne: null }
+      }
+    }
   },
 
   Country: {
@@ -127,7 +134,7 @@ export const userSchema = new Schema<IUser>({
   DeletedAt: Date,
   DeletedBy: { type: Schema.Types.ObjectId, ref: "User" },
 
-  email: { type: String, required: true , index: true, unique: true},
+  email: { type: String, required: true, index: true, unique: true },
   confrimEmailAt: Date,
 
   profileimage: String,
@@ -137,6 +144,17 @@ export const userSchema = new Schema<IUser>({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+
+userSchema.index(
+  { ParentsPhone: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      ParentsPhone: { $exists: true, $ne: null }
+    }
+  }
+);
 
 
 
