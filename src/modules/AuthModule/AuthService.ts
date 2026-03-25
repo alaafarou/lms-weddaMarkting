@@ -219,7 +219,7 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                DeletedAt: { $exists: false },
+                DeletedAt:{ $exists: false },
                 Status:StatusEnum.Active
                 
             },

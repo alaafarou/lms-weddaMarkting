@@ -82,14 +82,8 @@ export const loginValidation = {
     body: z.strictObject({
         email: z.email("Invalid email format"),
 
-        password: z.string()
-            .min(8, "Password must be at least 8 characters")
-            .max(20, "Password must not exceed 20 characters")
-            .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
-                {
-                    message: "Password must contain uppercase, lowercase, number, and special character (@$!%*?&) "
-                }
-            ),
+        password: z.string().min(1, "Password is required"),
+           
     })
 }
 

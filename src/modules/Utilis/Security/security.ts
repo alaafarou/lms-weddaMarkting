@@ -163,7 +163,7 @@ export const Decoded = async ({ Authorization,
         throw new NotFoundException(" this account is not created")
     }
 
-    if (decoded.Session_id !== User.Session_id) {
+    if ( User.role === roleEnum.user && decoded.Session_id !== User.Session_id) {
         throw new UnauthorizedException(" this account loged in on another device")
     }
 
