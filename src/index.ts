@@ -22,17 +22,13 @@ const bootsrap = async () => {
     const app: Express = express()
 
   
-
-    app.use(express.json())
-
     app.use(cors({
         origin: '*', // For development, this allows all origins
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization']
     }));
 
-
-
+    app.use(express.json())
 
     await DBconnection()
 
