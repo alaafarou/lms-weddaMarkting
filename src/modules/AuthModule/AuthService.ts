@@ -62,7 +62,7 @@ class AuthenticationService {
                     fullname,
                     email,
                     password,
-                    role:roleEnum.user,
+                    role: roleEnum.user,
                     ...req.body
                 }
             ]
@@ -109,7 +109,7 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                Status:StatusEnum.Active,
+                Status: StatusEnum.Active,
                 DeletedAt: { $exists: false },
             },
             options: {
@@ -142,7 +142,7 @@ class AuthenticationService {
             filter: {
                 email,
                 DeletedAt: { $exists: false },
-                Status:StatusEnum.Active
+                Status: StatusEnum.Active
             },
             options: {
                 populate: [
@@ -175,7 +175,7 @@ class AuthenticationService {
             filter: {
                 email,
                 DeletedAt: { $exists: false },
-                Status:StatusEnum.Active,
+                Status: StatusEnum.Active,
             },
             options: {
                 populate: [
@@ -219,9 +219,9 @@ class AuthenticationService {
         const User = await this.UserModel.findOne({
             filter: {
                 email,
-                DeletedAt:{ $exists: false },
-                Status:StatusEnum.Active
-                
+                DeletedAt: { $exists: false },
+                Status: StatusEnum.Active
+
             },
             select: "role fullname password Session_id",
         })
@@ -231,7 +231,7 @@ class AuthenticationService {
             throw new NotFoundException("this account doesnt exists")
         }
 
-        if(User.Session_id){
+        if (User.Session_id && User.role === roleEnum.user) {
             throw new ConflictException("this account loged in on another device")
         }
 
@@ -242,17 +242,17 @@ class AuthenticationService {
         const LoggedInUser = await this.UserModel.findOneAndupdate({
             filter: {
                 _id: User._id,
-                Status:StatusEnum.Active,
+                Status: StatusEnum.Active,
                 $or: [{ Session_id: null }, { Session_id: { $exists: false } }]
 
             },
             update: {
                 Session_id
             },
-            options:{new:true}
+            options: { new: true }
         })
 
-        if (!LoggedInUser) {
+        if (!LoggedInUser && User.role === roleEnum.user) {
             throw new ConflictException("this account loged in on another device")
         }
 
@@ -262,7 +262,7 @@ class AuthenticationService {
 
     }
 
-    
+
 
 }
 export default new AuthenticationService();
