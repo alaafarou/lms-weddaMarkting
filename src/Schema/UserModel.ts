@@ -78,10 +78,13 @@ export const userSchema = new Schema<IUser>({
 
   phone: {
     type: String,
-    unique: true,
-    required: function (this) {
-      return this.role === roleEnum.user
-    },
+    default: null,
+    index: {
+      unique: true,
+      partialFilterExpression: {
+        phone: { $exists: true, $ne: null }
+      }
+    }
   },
 
   // just for now and will be removed later ok
